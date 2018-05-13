@@ -34,7 +34,7 @@ class TestMixable extends ElephantWrenchBaseTestCase
     {
         $mixable_class = new MixableTestClass();
         $mixable_class::mix('getPublicProperty', function() {
-          return $this->public_property;
+            return $this->public_property;
         });
         $this->assertEquals($mixable_class->public_property, $mixable_class->getPublicProperty());
     }
@@ -43,7 +43,7 @@ class TestMixable extends ElephantWrenchBaseTestCase
     {
         $mixable_class = new MixableTestClass();
         $mixable_class::mix('getProtectedProperty', function() {
-          return $this->protected_property;
+            return $this->protected_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'protected_property'), $mixable_class->getProtectedProperty());
     }
@@ -52,7 +52,7 @@ class TestMixable extends ElephantWrenchBaseTestCase
     {
         $mixable_class = new MixableTestClass();
         $mixable_class::mix('getPrivateProperty', function() {
-          return $this->private_property;
+            return $this->private_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'private_property'), $mixable_class->getPrivateProperty());
     }
@@ -62,9 +62,9 @@ class TestMixable extends ElephantWrenchBaseTestCase
         $mixable_class = new MixableTestClass();
         $mixable_subclass = new MixableTestSubClass();
         $mixable_class::mix('getPublicProperty', function() {
-          return $this->public_property;
+            return $this->public_property;
         });
-        $this->assertEquals($mixable_class->public_property, $mixable_subclass->getPublicProperty());
+        $this->assertEquals($mixable_subclass->public_property, $mixable_subclass->getPublicProperty());
     }
 
     public function testAddingFunctionThatUsesExistingMixableClassProtectedPropertyFromSubclass()
@@ -72,9 +72,9 @@ class TestMixable extends ElephantWrenchBaseTestCase
         $mixable_class = new MixableTestClass();
         $mixable_subclass = new MixableTestSubClass();
         $mixable_class::mix('getProtectedProperty', function() {
-          return $this->protected_property;
+            return $this->protected_property;
         });
-        $this->assertEquals($this->getNonPublicProperty($mixable_class, 'protected_property'), $mixable_subclass->getProtectedProperty());
+        $this->assertEquals($this->getNonPublicProperty($mixable_subclass, 'protected_property'), $mixable_subclass->getProtectedProperty());
     }
 
     public function testAddingFunctionThatUsesExistingMixableClassPrivatePropertyFromSubclass()
@@ -82,7 +82,7 @@ class TestMixable extends ElephantWrenchBaseTestCase
         $mixable_class = new MixableTestClass();
         $mixable_subclass = new MixableTestSubClass();
         $mixable_class::mix('getPrivateProperty', function() {
-          return $this->private_property;
+            return $this->private_property;
         });
 
         //Shouldn't thow an exception since the function was registered to a class that has access to this private property
@@ -95,7 +95,7 @@ class TestMixable extends ElephantWrenchBaseTestCase
 
         $mixable_subclass = new MixableTestSubClass();
         $mixable_subclass::mix('getPrivateProperty', function() {
-          return $this->private_property;
+            return $this->private_property;
         });
 
         //Should throw an exception for undefined property `private_property`
