@@ -2,6 +2,7 @@
 
 namespace ElephantWrench\Test;
 
+use PHPUnit_Framework_Error_Notice;
 use ElephantWrench\Test\Helpers\{MixableTestClass, MixableTestSubClass};
 
 class TestMixable extends ElephantWrenchBaseTestCase
@@ -54,6 +55,53 @@ class TestMixable extends ElephantWrenchBaseTestCase
           return $this->private_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'private_property'), $mixable_class->getPrivateProperty());
+    }
+
+    public function testAddingFunctionThatUsesExistingMixableClassPublicPropertyFromSubclass()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_subclass = new MixableTestSubClass();
+        $mixable_class::mix('getPublicProperty', function() {
+          return $this->public_property;
+        });
+        $this->assertEquals($mixable_class->public_property, $mixable_subclass->getPublicProperty());
+    }
+
+    public function testAddingFunctionThatUsesExistingMixableClassProtectedPropertyFromSubclass()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_subclass = new MixableTestSubClass();
+        $mixable_class::mix('getProtectedProperty', function() {
+          return $this->protected_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_class, 'protected_property'), $mixable_subclass->getProtectedProperty());
+    }
+
+    public function testAddingFunctionThatUsesExistingMixableClassPrivatePropertyFromSubclass()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_subclass = new MixableTestSubClass();
+        $mixable_class::mix('getPrivateProperty', function() {
+          return $this->private_property;
+        });
+
+        //Shouldn't thow an exception since the function was registered to a class that has access to this private property
+        $this->assertEquals($this->getNonPublicProperty($mixable_class, 'private_property'), $mixable_subclass->getPrivateProperty());
+    }
+
+    public function testAddingFunctionThatUsesParentExistingMixableClassPrivatePropertyFromSubclass()
+    {
+        $this->expectException(PHPUnit_Framework_Error_Notice::class);
+
+        $mixable_subclass = new MixableTestSubClass();
+        $mixable_subclass::mix('getPrivateProperty', function() {
+          return $this->private_property;
+        });
+
+        //Should throw an exception for undefined property `private_property`
+        //since getPrivateProperty was added to `MixableTestSubClass` which can not access
+        //the private properties of its parent `MixableTestClass`
+        $mixable_subclass->getPrivateProperty();
     }
 
 }
