@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/6.3/phpunit.xsd"
+         backupGlobals="true"
+         backupStaticAttributes="false"
+         bootstrap="bootstrap.php"
+         cacheTokens="false"
+         colors="false"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         forceCoversAnnotation="false"
+         mapTestClassNameToCoveredClassName="false"
+         printerClass="PHPUnit_TextUI_ResultPrinter"
+         processIsolation="false"
+         stopOnError="false"
+         stopOnFailure="false"
+         stopOnIncomplete="false"
+         stopOnSkipped="false"
+         stopOnRisky="false"
+         testSuiteLoaderClass="PHPUnit_Runner_StandardTestSuiteLoader"
+         timeoutForSmallTests="1"
+         timeoutForMediumTests="10"
+         timeoutForLargeTests="60"
+         verbose="false">
+
+   <testsuites>
+      <!--testsuite name="All">
+         <directory>./tests/*Test.php files</directory>
+         <exclude>./tests/ElephantWrench.php</exclude>
+      </testsuite-->
+
+      <testsuite name="My Test Suite">
+         <directory suffix="Test.php" phpVersion="7.0.0" phpVersionOperator=">=">./tests</directory>
+         <exclude>./tests/ElephantWrenchBaseTestCase.php</exclude>
+      </testsuite>
+   </testsuites>
+</phpunit>
