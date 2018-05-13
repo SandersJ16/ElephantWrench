@@ -7,4 +7,6 @@ use ElephantWrench\Core\Traits\Mixable;
 class MixableTestClass
 {
     use Mixable;
+
+    public $public_property = 'public';
 }

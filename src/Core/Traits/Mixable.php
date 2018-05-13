@@ -2,6 +2,9 @@
 
 namespace ElephantWrench\Core\Traits;
 
+use Closure;
+use BadMethodCallException;
+
 trait Mixable
 {
     protected static $mixables = array();
@@ -10,11 +13,11 @@ trait Mixable
      * Register a custom macro.
      *
      * @param  string $name
-     * @param  object|callable  $macro
+     * @param  callable  $macro
      *
      * @return void
      */
-    public static function mix($name, $macro)
+    public static function mix(string $name, callable $macro)
     {
         static::$mixables[$name] = $macro;
     }
@@ -28,7 +31,7 @@ trait Mixable
      *
      * @throws \BadMethodCallException
      */
-    public function __call($method, $parameters)
+    public function __call(string $method, array $parameters)
     {
         if (!isset(static::$mixables[$method])) {
             throw new BadMethodCallException(sprintf(
@@ -36,6 +39,12 @@ trait Mixable
             ));
         }
 
-        return call_user_func_array(static::$mixables[$method], $parameters);
+        $macro = static::$mixables[$method];
+        if ($macro instanceof Closure) {
+            $macro = $macro->bindTo($this, static::class);
+        } else {
+            $macro = Closure::bind($callback, $this);
+        }
+        return call_user_func_array($macro, $parameters);
     }
 }
