@@ -57,13 +57,13 @@ trait Mixable
             ));
         }
 
-        $macro = static::$mixables[$mixed_class][$method];
+        $callable = static::$mixables[$mixed_class][$method];
 
-        if ($macro instanceof Closure) {
-            $macro = $macro->bindTo($this, $mixed_class);
+        if ($callable instanceof Closure) {
+            $callable = $callable->bindTo($this, $mixed_class);
         } else {
-            $macro = Closure::bind($macro, $this, $mixed_class);
+            $callable = Closure::bind($callable, $this, $mixed_class);
         }
-        return call_user_func_array($macro, $parameters);
+        return call_user_func_array($callable, $parameters);
     }
 }
