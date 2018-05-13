@@ -62,7 +62,7 @@ trait Mixable
         if ($macro instanceof Closure) {
             $macro = $macro->bindTo($this, $mixed_class);
         } else {
-            $macro = Closure::bind($callback, $this, $mixed_class);
+            $macro = Closure::bind($macro, $this, $mixed_class);
         }
         return call_user_func_array($macro, $parameters);
     }
