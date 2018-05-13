@@ -19,7 +19,24 @@ trait Mixable
      */
     public static function mix(string $name, callable $macro)
     {
-        static::$mixables[$name] = $macro;
+        static::$mixables[static::class][$name] = $macro;
+    }
+
+    public static function getMixedClass(string $method)
+    {
+        $class = static::class;
+        while ($class !== False) {
+            if (isset(static::$mixables[$class][$method])) {
+                break;
+            }
+            $class = get_parent_class($class);
+        }
+        return $class;
+    }
+
+    public static function hasMixedFunction(string $method) : boolean
+    {
+        return (boolean) static::getMixedClass($method);
     }
 
     /**
@@ -33,18 +50,19 @@ trait Mixable
      */
     public function __call(string $method, array $parameters)
     {
-        if (!isset(static::$mixables[$method])) {
+        $mixed_class = static::getMixedClass($method);
+        if (!$mixed_class) {
             throw new BadMethodCallException(sprintf(
                 'Method %s::%s does not exist.', static::class, $method
             ));
         }
 
-        $macro = static::$mixables[$method];
+        $macro = static::$mixables[$mixed_class][$method];
 
         if ($macro instanceof Closure) {
-            $macro = $macro->bindTo($this, static::class);
+            $macro = $macro->bindTo($this, $mixed_class);
         } else {
-            $macro = Closure::bind($callback, $this);
+            $macro = Closure::bind($callback, $this, $mixed_class);
         }
         return call_user_func_array($macro, $parameters);
     }

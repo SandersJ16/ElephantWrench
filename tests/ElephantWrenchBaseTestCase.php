@@ -50,7 +50,7 @@ class ElephantWrenchBaseTestCase extends TestCase
     {
         $reflection_class = new ReflectionObject($object);
         $property = $reflection_class->getProperty($property_name);
-        $property->setAccessible(true);
+        $property->setAccessible(True);
         return $property->getValue($object);
     }
 
@@ -71,12 +71,12 @@ class ElephantWrenchBaseTestCase extends TestCase
         foreach (self::$saved_static_properties[$class] as $property_name => $property_value)
         {
             $property = $reflection_class->getProperty($property_name);
-            $property->setAccessible(true);
+            $property->setAccessible(True);
             $property->setValue($property_value);
         }
     }
 
     // public function testPhpunitLoads() {
-    //     $this->assertTrue(true);
+    //     $this->assertTrue(True);
     // }
 }
