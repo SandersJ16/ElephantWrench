@@ -37,4 +37,23 @@ class TestMixable extends ElephantWrenchBaseTestCase
         });
         $this->assertEquals($mixable_class->public_property, $mixable_class->getPublicProperty());
     }
+
+    public function testAddingFunctionThatUsesExistingMixableClassProtectedProperty()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('getProtectedProperty', function() {
+          return $this->protected_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_class, 'protected_property'), $mixable_class->getProtectedProperty());
+    }
+
+    public function testAddingFunctionThatUsesExistingMixableClassPrivateProperty()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('getPrivateProperty', function() {
+          return $this->private_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_class, 'private_property'), $mixable_class->getPrivateProperty());
+    }
+
 }

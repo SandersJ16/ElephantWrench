@@ -40,6 +40,7 @@ trait Mixable
         }
 
         $macro = static::$mixables[$method];
+
         if ($macro instanceof Closure) {
             $macro = $macro->bindTo($this, static::class);
         } else {

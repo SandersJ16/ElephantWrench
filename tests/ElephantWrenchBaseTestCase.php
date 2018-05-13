@@ -3,6 +3,7 @@
 namespace ElephantWrench\Test;
 
 use ReflectionClass;
+use ReflectionObject;
 use PHPUnit\Framework\TestCase;
 
 class ElephantWrenchBaseTestCase extends TestCase
@@ -28,7 +29,7 @@ class ElephantWrenchBaseTestCase extends TestCase
         }
     }
 
-    public function assertArraysSimilar(array $expected, array $actual)
+    protected function assertArraysSimilar(array $expected, array $actual)
     {
         $this->assertCount(count($expected), $actual);
         foreach ($expected as $expected_key => $expected_value)
@@ -43,6 +44,14 @@ class ElephantWrenchBaseTestCase extends TestCase
                 $this->assertSame($expected_value, $actual[$expected_key]);
             }
         }
+    }
+
+    protected function getNonPublicProperty(object $object, string $property_name)
+    {
+        $reflection_class = new ReflectionObject($object);
+        $property = $reflection_class->getProperty($property_name);
+        $property->setAccessible(true);
+        return $property->getValue($object);
     }
 
     final protected static function saveStaticProperties($class)
