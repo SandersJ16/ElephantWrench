@@ -238,8 +238,10 @@ class TestMixable extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that an added function can use a public static property
-     * defined on the Mixable using self from a child class.
+     * Test that an added function using a public static property
+     * defined on the Mixable called using `self` is callable from a
+     * subclass of the mixable and uses the parent's property not the
+     * subclass's property
      */
     public function testAddingFunctionThatUsesExistingMixableClassStaticPublicPropertyCallableFromMixableSubclassWhenUsingSelfToAccessProperty()
     {
@@ -251,8 +253,10 @@ class TestMixable extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that an added function can use a protected static property
-     * defined on the Mixable using static.
+     * Test that an added function using a protected static property
+     * defined on the Mixable called using `self` is callable from a
+     * subclass of the mixable and uses the parent's property not the
+     * subclass's property
      */
     public function testAddingFunctionThatUsesExistingMixableClassStaticProtectedPropertyCallableFromMixableSubclassWhenUsingSelfToAccessProperty()
     {
@@ -265,16 +269,63 @@ class TestMixable extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that an added function can use a private static property
-     * defined on the Mixable using static.
+     * Test that an added function using a private static property
+     * defined on the Mixable called using `self` is callable from a
+     * subclass of the mixable and uses the parent's property not the
+     * subclass's property
      */
     public function testAddingFunctionThatUsesExistingMixableClassStaticPrivatePropertyCallableFromMixableSubclassWhenUsingSelfToAccessProperty()
     {
         $mixable_class = new MixableTestClass();
         $mixable_subclass = new MixableTestSubClass();
-        $mixable_class::mix('getStaticPrivateProperty', function() {
+        MixableTestClass::mix('getStaticPrivateProperty', function() {
             return self::$static_private_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'static_private_property'), $mixable_subclass->getStaticPrivateProperty());
+    }
+
+    /**
+     * Test that an added function using a public static property
+     * defined on the Mixable and overriden on a Subclass of the Mixable
+     * called using `self` is callable when added to the subclass of the mixable
+     * and uses the subclass's property not the parent's
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticPublicPropertyToMixableSubclassThatOverridesParentsProperty()
+    {
+        $mixable_subclass = new MixableTestSubClass();
+        MixableTestSubClass::mix('getStaticPublicProperty', function() {
+            return self::$static_public_property;
+        });
+        $this->assertEquals(MixableTestSubClass::$static_public_property, $mixable_subclass->getStaticPublicProperty());
+    }
+
+    /**
+     * Test that an added function using a protected static property
+     * defined on the Mixable and overriden on a Subclass of the Mixable
+     * called using `self` is callable when added to the subclass of the mixable
+     * and uses the subclass's property not the parent's
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticProtectedPropertyToMixableSubclassThatOverridesParentsProperty()
+    {
+        $mixable_subclass = new MixableTestSubClass();
+        MixableTestSubClass::mix('getStaticProtectedProperty', function() {
+            return self::$static_protected_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_subclass, 'static_protected_property'), $mixable_subclass->getStaticProtectedProperty());
+    }
+
+    /**
+     * Test that an added function using a private static property
+     * defined on the Mixable and overriden on a Subclass of the Mixable
+     * called using `self` is callable when added to the subclass of the mixable
+     * and uses the subclass's property not the parent's
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticPrivatePropertyToMixableSubclassThatOverridesParentsProperty()
+    {
+        $mixable_subclass = new MixableTestSubClass();
+        MixableTestSubClass::mix('getStaticPrivateProperty', function() {
+            return self::$static_private_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_subclass, 'static_private_property'), $mixable_subclass->getStaticPrivateProperty());
     }
 }
