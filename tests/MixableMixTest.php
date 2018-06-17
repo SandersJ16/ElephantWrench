@@ -6,7 +6,10 @@ use Error;
 use PHPUnit_Framework_Error_Notice;
 use ElephantWrench\Test\Helpers\{MixableTestClass, MixableTestSubClass};
 
-class TestMixable extends ElephantWrenchBaseTestCase
+/**
+ * This class tests the Mixable::Mix function
+ */
+class TestMixableMix extends ElephantWrenchBaseTestCase
 {
     /**
      * Classes whose static variables should be reset between every test
