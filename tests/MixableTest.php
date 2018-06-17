@@ -131,11 +131,13 @@ class TestMixable extends ElephantWrenchBaseTestCase
     /**
      * Test that a function added to the subclass of a Mixable can
      * NOT use a private non-static property defined on the Mixable
+     *
+     * @expectedException PHPUnit_Framework_Error_Notice
      */
     public function testAddingFunctionThatUsesParentExistingMixableClassPrivatePropertyFromSubclass()
     {
-        //`Use of undefined constant` does not throw a Throwable so PHPUnit handles it
-        //using `set_error_handler()` and then throws a PHPUnit_Framework_Error_Notice
+        // `Undefined Property` error does not throw a Throwable so PHPUnit handles it
+        // using `set_error_handler()` and then throws a PHPUnit_Framework_Error_Notice
         $this->expectException(PHPUnit_Framework_Error_Notice::class);
 
         $mixable_subclass = new MixableTestSubClass();
@@ -217,6 +219,8 @@ class TestMixable extends ElephantWrenchBaseTestCase
     /**
      * Test that an added function can NOT use a private static property
      * defined on the Mixable using static from a child class.
+     *
+     * @expectedException Error
      */
     public function testAddingFunctionThatUsesExistingMixableClassStaticPrivatePropertyCallableFromMixableSubclassWhenUsingStaticToAccessProperty()
     {
