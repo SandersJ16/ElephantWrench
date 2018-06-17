@@ -9,7 +9,7 @@ use ElephantWrench\Test\Helpers\{MixableTestClass, MixableTestSubClass};
 /**
  * This class tests the Mixable::Mix function
  */
-class TestMixableMix extends ElephantWrenchBaseTestCase
+class MixableMixTest extends ElephantWrenchBaseTestCase
 {
     /**
      * Classes whose static variables should be reset between every test
