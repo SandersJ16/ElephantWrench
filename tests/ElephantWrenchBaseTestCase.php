@@ -138,7 +138,14 @@ class ElephantWrenchBaseTestCase extends TestCase
         }
     }
 
-    // public function testPhpunitLoads() {
-    //     $this->assertTrue(True);
-    // }
+    /**
+     * This function serves two purposes, one since other test classes subclass this one PHPUnit
+     * complains that this class has no tests, this stops that warning. The other purpose having
+     * this function does is ensure that PHPUnit will work with even a simple test. This is useful
+     * for debuging things like global backup errors that can stop PHPUnit from running at all.
+     */
+    public function testPhpunitLoads()
+    {
+        $this->assertTrue(True);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace ElephantWrench\Test;
 
+use Error;
 use PHPUnit_Framework_Error_Notice;
 use ElephantWrench\Test\Helpers\{MixableTestClass, MixableTestSubClass};
 
@@ -148,4 +149,128 @@ class TestMixable extends ElephantWrenchBaseTestCase
         $mixable_subclass->getPrivateProperty();
     }
 
+    /**
+     * Test that an added function can use a public static property
+     * defined on the Mixable using self.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticPublicProperty()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('getStaticPublicProperty', function() {
+            return self::$static_public_property;
+        });
+        $this->assertEquals($mixable_class::$static_public_property, $mixable_class->getStaticPublicProperty());
+    }
+
+    /**
+     * Test that an added function can use a protected static property
+     * defined on the Mixable using self.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticProtectedProperty()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('getStaticProtectedProperty', function() {
+            return self::$static_protected_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_class, 'static_protected_property'), $mixable_class->getStaticProtectedProperty());
+    }
+
+    /**
+     * Test that an added function can use a private static property
+     * defined on the Mixable using self.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticPrivateProperty()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('getStaticPrivateProperty', function() {
+            return self::$static_private_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_class, 'static_private_property'), $mixable_class->getStaticPrivateProperty());
+    }
+
+    /**
+     * Test that an added function can use a public static property
+     * defined on the Mixable using static from a child class.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticPublicPropertyCallableFromMixableSubclassWhenUsingStaticToAccessProperty()
+    {
+        $mixable_subclass = new MixableTestSubClass();
+        MixableTestClass::mix('getStaticPublicProperty', function() {
+            return static::$static_public_property;
+        });
+        $this->assertEquals($mixable_subclass::$static_public_property, $mixable_subclass->getStaticPublicProperty());
+    }
+
+    /**
+     * Test that an added function can use a protected static property
+     * defined on the Mixable using static from a child class.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticProtectedPropertyCallableFromMixableSubclassWhenUsingStaticToAccessProperty()
+    {
+        $mixable_subclass = new MixableTestSubClass();
+        MixableTestClass::mix('getStaticProtectedProperty', function() {
+            return static::$static_protected_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_subclass, 'static_protected_property'), $mixable_subclass->getStaticProtectedProperty());
+    }
+
+    /**
+     * Test that an added function can NOT use a private static property
+     * defined on the Mixable using static from a child class.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticPrivatePropertyCallableFromMixableSubclassWhenUsingStaticToAccessProperty()
+    {
+        $this->expectException(Error::class);
+
+        $mixable_subclass = new MixableTestSubClass();
+        MixableTestClass::mix('getStaticPrivateProperty', function() {
+            return static::$static_private_property;
+        });
+
+        //Should throw an error for cannot access property `static_private_property`
+        //since getStaticPrivateProperty was added to `MixableTestSubClass` which can not access
+        //the private properties of its parent `MixableTestClass`
+        $mixable_subclass->getStaticPrivateProperty();
+    }
+
+    /**
+     * Test that an added function can use a public static property
+     * defined on the Mixable using self from a child class.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticPublicPropertyCallableFromMixableSubclassWhenUsingSelfToAccessProperty()
+    {
+        $mixable_subclass = new MixableTestSubClass();
+        MixableTestClass::mix('getStaticPublicProperty', function() {
+            return self::$static_public_property;
+        });
+        $this->assertEquals(MixableTestClass::$static_public_property, $mixable_subclass->getStaticPublicProperty());
+    }
+
+    /**
+     * Test that an added function can use a protected static property
+     * defined on the Mixable using static.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticProtectedPropertyCallableFromMixableSubclassWhenUsingSelfToAccessProperty()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_subclass = new MixableTestSubClass();
+        MixableTestClass::mix('getStaticProtectedProperty', function() {
+            return self::$static_protected_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_class, 'static_protected_property'), $mixable_subclass->getStaticProtectedProperty());
+    }
+
+    /**
+     * Test that an added function can use a private static property
+     * defined on the Mixable using static.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassStaticPrivatePropertyCallableFromMixableSubclassWhenUsingSelfToAccessProperty()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_subclass = new MixableTestSubClass();
+        $mixable_class::mix('getStaticPrivateProperty', function() {
+            return self::$static_private_property;
+        });
+        $this->assertEquals($this->getNonPublicProperty($mixable_class, 'static_private_property'), $mixable_subclass->getStaticPrivateProperty());
+    }
 }

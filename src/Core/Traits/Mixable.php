@@ -76,12 +76,8 @@ trait Mixable
         }
 
         $callable = static::$mixables[$mixed_class][$method];
+        $callable = Closure::bind($callable, $this, $mixed_class);
 
-        if ($callable instanceof Closure) {
-            $callable = $callable->bindTo($this, $mixed_class);
-        } else {
-            $callable = Closure::bind($callable, $this, $mixed_class);
-        }
         return call_user_func_array($callable, $parameters);
     }
 }
