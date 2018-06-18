@@ -16,7 +16,11 @@ trait Mixable
      */
     protected static $mixable_methods = array();
 
-
+    /**
+     * Used to keep track of all added mixed properties on this class and its children
+     *
+     * @var array
+     */
     protected static $mixable_properties = array();
 
     /**
@@ -30,13 +34,15 @@ trait Mixable
         static::$mixable_methods[static::class][$name] = $macro;
     }
 
-    // protected static function mix_property($property, $value)
-    // {
-    //     static::$mixable_properties[static::class][$property] = $value;
-    // }
-
-    protected static function mix_property(ReflectionProperty $property)
+    /**
+     * Register a new Property to this class
+     *
+     * @param  ReflectionProperty $property
+     * @param  mixed              $default_value Default value for this property
+     */
+    protected static function mix_property(ReflectionProperty $property, $default_value = Null)
     {
+        $property->default_value = $default_value;
         static::$mixable_properties[static::class][$property->getName()] = $property;
     }
 
@@ -61,16 +67,11 @@ trait Mixable
     public static function mixin($mixin)
     {
         $reflection_class = new ReflectionClass($mixin);
-        //foreach($reflection_class->getDefaultProperties() as $property => $value)
-        //{
-        //    static::mix_property($property, $value);
-        //}
         $default_property_values = $reflection_class->getDefaultProperties();
         foreach ($reflection_class->getProperties() as $property)
         {
             if ($property->isDefault()) {
-                $property->mixin_value = $default_property_values[$property->getName()];
-                static::mix_property($property);
+                static::mix_property($property, $default_property_values[$property->getName()]);
             }
         }
     }
@@ -112,6 +113,7 @@ trait Mixable
      *
      * @param  string  $method
      * @param  array   $parameters
+     *
      * @return mixed
      *
      * @throws \BadMethodCallException
@@ -131,13 +133,20 @@ trait Mixable
         return call_user_func_array($callable, $parameters);
     }
 
+    /**
+     * Dynamically hande calls to properties on the class
+     *
+     * @param  string $name
+     *
+     * @return mixed
+     */
     public function __get(string $name)
     {
         $mixed_class = static::getMixedPropertyClass($name);
         if ($mixed_class) {
             $property = static::$mixable_properties[$mixed_class][$name];
             if ($property->isPublic()) {
-                return $property->mixin_value;
+                return $property->default_value;
             }
         }
 
