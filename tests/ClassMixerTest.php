@@ -43,7 +43,7 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
         try
         {
             $method_closure();
-            $this->fail('Closure of methodWithRequiredNonTypedHintedNonDefaultValuedParameter did not throw an error when called without a parameter');
+            $this->fail('Closure of ClassMixerTestClass::methodWithRequiredNonTypedHintedNonDefaultValuedParameter did not throw an error when called without a parameter');
         }
         catch (ArgumentCountError $e) {}
     }
@@ -58,8 +58,33 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
         try
         {
             $method_closure(new StdClass());
-            $this->fail('Closure of methodWithStringTypeHintedNonDefaultValuedParameter did not throw an error when passed a non string parameter');
+            $this->fail('Closure of ClassMixerTestClass::methodWithStringTypeHintedNonDefaultValuedParameter did not throw an error when passed a non string parameter');
         }
         catch (TypeError $e) {}
+    }
+
+    public function testCreatedClosureWithSingleDefaultParameter()
+    {
+        $method_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'methodWithStringTypeHintedDefaultValuedParameter');
+
+        $method_closure('string');
+        $method_closure(11);
+        $method_closure();
+    }
+
+    public function testCreatedClosureWithReturnTypeRespectsReturnType()
+    {
+        $method_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'methodWithStringReturnTypeThatReturnsItsFirstParameter');
+
+        $method_closure('string');
+        $method_closure(16); //This should work becaue PHP will coerce the integer into a string
+
+        try
+        {
+            $method_closure(new StdClass());
+            $this->fail('Closure of ClassMixerTestClass::methodWithStringReturnTypeThatReturnsItsFirstParameter allowed return type of non string');
+        }
+        catch (TypeError $e) {}
+
     }
 }

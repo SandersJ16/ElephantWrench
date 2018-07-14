@@ -20,7 +20,14 @@ final class ClassMixer
     {
         $closure_definition = 'function (';
         $closure_definition .= implode(', ', self::getReflectionFunctionParametersAsStrings($reflection_function));
-        $closure_definition .= ')' . PHP_EOL;
+        $closure_definition .= ')';
+
+        if ($reflection_function->hasReturnType())
+        {
+            $closure_definition .= ' : ' . $reflection_function->getReturnType();
+        }
+
+        $closure_definition .= ' {' . PHP_EOL;
 
         $function_definition = '';
         $lines = file($reflection_function->getFileName());
@@ -33,13 +40,13 @@ final class ClassMixer
                        $function_definition,
                        $matches))
         {
-            $closure_definition .= ' {' . $matches['function_body'] . ' };';
+            $closure_definition .= $matches['function_body'];
         }
         else
         {
             // TODO: Error
         }
-
+        $closure_definition .= '};';
 
         return $closure_definition;
     }
@@ -47,25 +54,34 @@ final class ClassMixer
     private static function getReflectionFunctionParametersAsStrings(ReflectionFunctionAbstract $reflection_function)
     {
         $function_parameter_strings = array();
-        foreach ($reflection_function->getParameters() as $function_parameters)
+        foreach ($reflection_function->getParameters() as $function_parameter)
         {
             $parameter_string = '';
-            if ($function_parameters->isArray())
+
+            if ($function_parameter->hasType())
             {
-                $parameter_string .= 'array ';
+                $parameter_string .= $function_parameter->getType() . ' ';
             }
-            else if ($function_parameters->getClass())
-            {
-                $parameter_string .= $function_parameters->getClass()->name . ' ';
-            }
-            if ($function_parameters->isPassedByReference())
+
+            if ($function_parameter->isPassedByReference())
             {
                 $parameter_string .= '&';
             }
-            $parameter_string .= '$' . $function_parameters->name;
-            if ($function_parameters->isOptional())
+            $parameter_string .= '$' . $function_parameter->name;
+
+
+            if ($function_parameter->isDefaultValueAvailable())
             {
-                $parameter_string .= ' = ' . var_export($function_parameters->getDefaultValue(), True);
+                $parameter_string .= ' = ';
+                if ($function_parameter->isDefaultValueConstant())
+                {
+                    $parameter_string .= $function_parameter->getDefaultValueConstantName();
+                }
+                else
+                {
+                    $parameter_string .= var_export($function_parameter->getDefaultValue(), True);
+                }
+
             }
             $function_parameter_strings[] = $parameter_string;
         }
@@ -80,6 +96,7 @@ final class ClassMixer
             eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_method));
         } catch(ParseError $e) {
             print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_method) . PHP_EOL;
+            //TODO: Error
 
         }
         return $closure;
