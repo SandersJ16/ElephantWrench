@@ -2,21 +2,33 @@
 
 namespace ElephantWrench\Core\Util;
 
+use Closure;
 use ParseError;
 use ReflectionClass;
 use ReflectionFunctionAbstract;
 
+/**
+ * This Class is used to create Closures of methods on classes that can
+ * be mixed into other classes using the ElephantWrench\Core\Traits\Mixable Trait
+ *
+ * It does this by getting a reflection method and
+ */
 final class ClassMixer
 {
+    /**
+     * This is a Static Class so don't allow instances
+     */
     private function __construct() {}
 
+
     /**
-     * Dumps the declaration (source code) of a Closure.
+     * Given reflection function return a string that can be evaled to give you a closure equivalent to the function
      *
-     * @param Closure $closure The closure
+     * @param  ReflectionFunctionAbstract $reflection_function
+     *
      * @return string
      */
-    public static function dumpReflectionFunctionAsClosure(ReflectionFunctionAbstract $reflection_function)
+    public static function dumpReflectionFunctionAsClosure(ReflectionFunctionAbstract $reflection_function) : string
     {
         $closure_definition = 'function (';
         $closure_definition .= implode(', ', self::getReflectionFunctionParametersAsStrings($reflection_function));
@@ -51,7 +63,14 @@ final class ClassMixer
         return $closure_definition;
     }
 
-    private static function getReflectionFunctionParametersAsStrings(ReflectionFunctionAbstract $reflection_function)
+    /**
+     * Get the parameters of a reflection function as strings of their definition
+     *
+     * @param  ReflectionFunctionAbstract $reflection_function
+     *
+     * @return array
+     */
+    private static function getReflectionFunctionParametersAsStrings(ReflectionFunctionAbstract $reflection_function) : array
     {
         $function_parameter_strings = array();
         foreach ($reflection_function->getParameters() as $function_parameter)
@@ -88,16 +107,33 @@ final class ClassMixer
         return $function_parameter_strings;
     }
 
-
-    public static function classMethodToRealClosure($class, $method) {
+    /**
+     * Given a class and a method on that class return a closure of that method
+     *
+     * @param  string $class
+     * @param  string $method
+     *
+     * @return Closure
+     */
+    public static function classMethodToRealClosure(string $class, string $method) : Closure {
         $reflection_class = new ReflectionClass($class);
         $reflection_method = $reflection_class->getMethod($method);
-        try {
-            eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_method));
-        } catch(ParseError $e) {
-            print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_method) . PHP_EOL;
-            //TODO: Error
+        return self::reflectionFunctionToRealClosure($reflection_method);
+    }
 
+    /**
+     * Given a reflection function return a closure of that method
+     *
+     * @param  ReflectionFunctionAbstract $reflection_function
+     *
+     * @return Closure
+     */
+    public static function reflectionFunctionToRealClosure(ReflectionFunctionAbstract $reflection_function) : Closure {
+        try {
+            eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_function));
+        } catch(ParseError $e) {
+            print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_function) . PHP_EOL;
+            //TODO: Error
         }
         return $closure;
     }

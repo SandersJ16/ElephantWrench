@@ -14,7 +14,12 @@ use ElephantWrench\Test\Helpers\ClassMixerTestClass;
  */
 class ClassMixerTest extends ElephantWrenchBaseTestCase
 {
-    public function hellowWorldMethodNameProvider()
+    /**
+     * DataProvider of methods on ClassMixerTestClassMixer that return 'hello world'
+     *
+     * @return array
+     */
+    public function helloWorldMethodNameProvider() : array
     {
         return array(['returnHelloWorldWithOpenBracketOnNewLine'],
                      ['returnHelloWorldWithOpenBracketOnSameLine'],
@@ -24,14 +29,21 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * @dataProvider hellowWorldMethodNameProvider
+     * Test that a function on ClassMixerTestClass returns 'hello world' after being turned into a closure using ClassMixer::classMethodToRealClosure
+     *
+     * @dataProvider helloWorldMethodNameProvider
+     *
+     * @param string $method_name
      */
-    public function testReturnHelloWorldFunctions($method_name)
+    public function testReturnHelloWorldFunctions(string $method_name)
     {
         $hello_world_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, $method_name);
         $this->assertEquals('hello world', $hello_world_closure());
     }
 
+    /**
+     * Test that methods with a parameter still require a parameter after they are turned into a closure with ClassMixer::classMethodToRealClosure
+     */
     public function testCreatedClosureWithSingleUnTypeHintedParameterAcceptsAllValuesAndRequiresParamter()
     {
         $method_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'methodWithRequiredNonTypedHintedNonDefaultValuedParameter');
@@ -48,12 +60,15 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
         catch (ArgumentCountError $e) {}
     }
 
+    /**
+     * Test that methods with a type hinted parameter still enforce TypeHinting after they are turned into a closure with ClassMixer::classMethodToRealClosure
+     */
     public function testCreatedClosureWithSingleTypeHintedParameterOnlyAcceptsAppropriateTypes()
     {
         $method_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'methodWithStringTypeHintedNonDefaultValuedParameter');
 
         $method_closure('string');
-        $method_closure(11); //This should work becaue PHP will coerce the integer into a string
+        $method_closure(6); //This should work becaue PHP will coerce the integer into a string
 
         try
         {
@@ -63,21 +78,27 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
         catch (TypeError $e) {}
     }
 
+    /**
+     * Test that methods with a parameter that has a default value still keep their default value after they are turned into a closure with ClassMixer::classMethodToRealClosure
+     */
     public function testCreatedClosureWithSingleDefaultParameter()
     {
         $method_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'methodWithStringTypeHintedDefaultValuedParameter');
 
-        $method_closure('string');
-        $method_closure(11);
-        $method_closure();
+        $this->assertEquals('string', $method_closure('string'));
+        $this->assertEquals(11, $method_closure(11));
+        $this->assertEquals('default', $method_closure('default'));
     }
 
+    /**
+     * Test that methods with a expected return type still enforce their return type after they are turned into a closure with ClassMixer::classMethodToRealClosure
+     */
     public function testCreatedClosureWithReturnTypeRespectsReturnType()
     {
         $method_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'methodWithStringReturnTypeThatReturnsItsFirstParameter');
 
-        $method_closure('string');
-        $method_closure(16); //This should work becaue PHP will coerce the integer into a string
+        $this->assertInternalType('string', $method_closure('string'));
+        $this->assertInternalType('string', $method_closure(16)); //This should work becaue PHP will coerce the integer into a string
 
         try
         {
@@ -85,6 +106,5 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
             $this->fail('Closure of ClassMixerTestClass::methodWithStringReturnTypeThatReturnsItsFirstParameter allowed return type of non string');
         }
         catch (TypeError $e) {}
-
     }
 }

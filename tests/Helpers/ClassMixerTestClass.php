@@ -30,7 +30,7 @@ class ClassMixerTestClass
 
     public function methodWithStringTypeHintedNonDefaultValuedParameter(string $param_1) {}
 
-    public function methodWithStringTypeHintedDefaultValuedParameter($param_1 = 'default') {}
+    public function methodWithStringTypeHintedDefaultValuedParameter($param_1 = 'default') { return $param_1; }
 
     public function methodWithStringReturnTypeThatReturnsItsFirstParameter($value) : string
     {

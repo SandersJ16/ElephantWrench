@@ -45,16 +45,40 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that a protected property added through a mixin can NOT be accessed directly on an instance of the mixable class
+     * Test that a private property added through a mixin can NOT be accessed directly on an instance of the mixable class
      *
      * @expectedException PHPUnit_Framework_Error_Notice
      */
-    public function testAccessingPrivtedMixedPropertyDirectlyIsNotAllowed()
+    public function testAccessingPrivateMixedPropertyDirectlyIsNotAllowed()
     {
         $this->expectException(PHPUnit_Framework_Error_Notice::class);
 
         MixableTestClass::mixin(MixinClass::class);
         $mixable_class = new MixableTestClass();
         $mixable_class->private_mixin_property;
+    }
+
+    public function testSettingPublicPropertiesMixedIntoMixableClass()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+        $mixable_class->public_mixin_property = 'new value';
+        $this->assertEquals('new value', $mixable_class->public_mixin_property);
+    }
+
+    public function testPublicPropertiesAreNotSharedAmongstMultipleInstancesOfAMixableClass()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class_1 = new MixableTestClass();
+        $mixable_class_2 = new MixableTestClass();
+        $mixable_class_1->public_mixin_property = 'new value';
+        $this->assertNotEquals($mixable_class_1->public_mixin_property, $mixable_class_2->public_mixin_property);
+    }
+
+    public function testAccessingPublicMixedMethod()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+        $mixable_class->publicMethod();
     }
 }

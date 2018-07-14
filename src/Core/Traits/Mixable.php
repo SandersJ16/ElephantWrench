@@ -5,7 +5,10 @@ namespace ElephantWrench\Core\Traits;
 use Closure;
 use ReflectionClass;
 use ReflectionProperty;
+use ReflectionException;
 use BadMethodCallException;
+
+use ElephantWrench\Core\Util\ClassMixer;
 
 trait Mixable
 {
@@ -67,12 +70,42 @@ trait Mixable
     public static function mixin($mixin)
     {
         $reflection_class = new ReflectionClass($mixin);
+        static::mixinPropertiesFromReflectionClass($reflection_class);
+        static::mixinMethodsFromReflectionClass($reflection_class, $mixin);
+    }
+
+    protected static function mixinPropertiesFromReflectionClass(ReflectionClass $reflection_class)
+    {
         $default_property_values = $reflection_class->getDefaultProperties();
         foreach ($reflection_class->getProperties() as $property)
         {
             if ($property->isDefault()) {
                 static::mix_property($property, $default_property_values[$property->getName()]);
             }
+        }
+
+    }
+
+    protected static function mixinMethodsFromReflectionClass(ReflectionClass $reflection_class, $mixin)
+    {
+        $methods = $reflection_class->getMethods(
+            //ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_PROTECTED
+        );
+        if (!is_object($mixin)) {
+            try
+            {
+                $mixin = $reflection_class->newInstance('test');
+            }
+            catch (ReflectionException $e)
+            {
+                $mixin = $reflection_class->newInstanceWithoutConstructor();
+            }
+        }
+        foreach ($methods as $method) {
+            //static::mix($method->getName(), $method->getClosure($mixin));
+            static::mix($method->getName(), ClassMixer::reflectionFunctionToRealClosure($method));
+            //$method->setAccessible(true);
+            //static::macro($method->name, $method->invoke($mixin));
         }
     }
 
@@ -128,9 +161,9 @@ trait Mixable
         }
 
         $callable = static::$mixable_methods[$mixed_class][$method];
-        $callable = Closure::bind($callable, $this, $mixed_class);
+        $closure = Closure::bind($callable, $this, $mixed_class);
 
-        return call_user_func_array($callable, $parameters);
+        return $closure(...$parameters);
     }
 
     /**
@@ -152,6 +185,6 @@ trait Mixable
 
         trigger_error(sprintf(
             'Undefined Property: %s::%s', static::class, $name
-        ));
+        ), E_USER_NOTICE);
     }
 }
