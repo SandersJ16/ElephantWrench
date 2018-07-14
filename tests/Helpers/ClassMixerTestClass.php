@@ -14,4 +14,7 @@ class ClassMixerTestClass
     }
 
     public function returnHelloWorldDefinedOnOneLine() { return 'hello world'; }
+
+    public function returnHelloWorldDefinedOnMultiLinesButStartsOnLineOne() { return 'hello world';
+    }
 }

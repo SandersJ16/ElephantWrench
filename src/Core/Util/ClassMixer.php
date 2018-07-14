@@ -18,44 +18,28 @@ final class ClassMixer
     public static function dumpReflectionFunctionAsClosure(ReflectionFunctionAbstract $reflection_function)
     {
         $closure_definition = 'function (';
-        $function_parameter_strings = self::getReflectionFunctionParametersAsStrings($reflection_function);
-
-        $closure_definition .= implode(', ', $function_parameter_strings);
+        $closure_definition .= implode(', ', self::getReflectionFunctionParametersAsStrings($reflection_function));
         $closure_definition .= ')' . PHP_EOL;
+
+        $function_definition = '';
         $lines = file($reflection_function->getFileName());
-
-        if ($reflection_function->getStartLine() == $reflection_function->getEndLine())
+        for ($line_number = $reflection_function->getStartLine(); $line_number <= $reflection_function->getEndLine(); ++$line_number)
         {
-            if (preg_match("/function\s*&?\s*{$reflection_function->name}\s*\(.+?{(?P<function_body>.*)}/",
-                           $lines[$reflection_function->getStartLine() - 1],
-                           $matches))
-            {
-                $closure_definition .= ' {' . $matches['function_body'] . ' };';
-            }
-            else
-            {
-                // TODO: Error
-            }
+            $function_definition .= $lines[$line_number - 1];
+        }
 
+        if (preg_match("/function\s*&?\s*{$reflection_function->name}\s*\(.+?{(?P<function_body>.*)}/s",
+                       $function_definition,
+                       $matches))
+        {
+            $closure_definition .= ' {' . $matches['function_body'] . ' };';
         }
         else
         {
-            for ($line_number = $reflection_function->getStartLine(); $line_number < $reflection_function->getEndLine(); ++$line_number)
-            {
-                $line = $lines[$line_number];
-
-                if ($line_number == $reflection_function->getStartLine() && strpos(trim($line), '{') !== 0)
-                {
-                    $line = '{ ' . PHP_EOL . $line;
-                }
-                if ($line_number == $reflection_function->getEndLine() - 1)
-                {
-                    $line = substr_replace($line, ';', -1, 0);
-                }
-                $closure_definition .= $line;
-
-            }
+            // TODO: Error
         }
+
+
         return $closure_definition;
     }
 
@@ -91,7 +75,7 @@ final class ClassMixer
     public static function classMethodToRealClosure($class, $method) {
         $reflection_class = new ReflectionClass($class);
         $reflection_method = $reflection_class->getMethod($method);
-        print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_method) . PHP_EOL;
+        //print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_method) . PHP_EOL;
         try {
             eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_method));
         } catch(\ParseError $e) {
