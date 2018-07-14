@@ -2,6 +2,7 @@
 
 namespace ElephantWrench\Core\Util;
 
+use ParseError;
 use ReflectionClass;
 use ReflectionFunctionAbstract;
 
@@ -75,10 +76,9 @@ final class ClassMixer
     public static function classMethodToRealClosure($class, $method) {
         $reflection_class = new ReflectionClass($class);
         $reflection_method = $reflection_class->getMethod($method);
-        //print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_method) . PHP_EOL;
         try {
             eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_method));
-        } catch(\ParseError $e) {
+        } catch(ParseError $e) {
             print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_method) . PHP_EOL;
 
         }

@@ -17,4 +17,16 @@ class ClassMixerTestClass
 
     public function returnHelloWorldDefinedOnMultiLinesButStartsOnLineOne() { return 'hello world';
     }
+
+    public function returnHelloWorldWithExtraLinesBetweenMethodBodyAndDefinition()
+
+    {
+
+     return 'hello world';
+
+    }
+
+    public function methodWithRequiredNonTypedHintedNonDefaultValuedParameter($param_1) {}
+
+    public function methodWithStringTypeHintedNonDefaultValuedParameter(string $param_1) {}
 }

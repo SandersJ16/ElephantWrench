@@ -2,6 +2,10 @@
 
 namespace ElephantWrench\Test;
 
+use StdClass;
+use TypeError;
+use ArgumentCountError;
+
 use ElephantWrench\Core\Util\ClassMixer;
 use ElephantWrench\Test\Helpers\ClassMixerTestClass;
 
@@ -10,17 +14,14 @@ use ElephantWrench\Test\Helpers\ClassMixerTestClass;
  */
 class ClassMixerTest extends ElephantWrenchBaseTestCase
 {
-    // public function testMethodToRealClosureWithOpenBracketOnNewLine()
-    // {
-    //     $hello_world_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'returnHelloWorldWithOpenBracketOnNewLine');
-    //     $this->assertEquals('hello world', $hello_world_closure());
-    // }
-
-    // public function testMethodToRealClosureWithOpenBracketOnSameLine()
-    // {
-    //     $hello_world_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'returnHelloWorldWithOpenBracketOnSameLine');
-    //     $this->assertEquals('hello world', $hello_world_closure());
-    // }
+    public function hellowWorldMethodNameProvider()
+    {
+        return array(['returnHelloWorldWithOpenBracketOnNewLine'],
+                     ['returnHelloWorldWithOpenBracketOnSameLine'],
+                     ['returnHelloWorldDefinedOnOneLine'],
+                     ['returnHelloWorldDefinedOnMultiLinesButStartsOnLineOne'],
+                     ['returnHelloWorldWithExtraLinesBetweenMethodBodyAndDefinition']);
+    }
 
     /**
      * @dataProvider hellowWorldMethodNameProvider
@@ -31,11 +32,34 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
         $this->assertEquals('hello world', $hello_world_closure());
     }
 
-    public function hellowWorldMethodNameProvider()
+    public function testCreatedClosureWithSingleUnTypeHintedParameterAcceptsAllValuesAndRequiresParamter()
     {
-        return array(['returnHelloWorldWithOpenBracketOnNewLine'],
-                     ['returnHelloWorldWithOpenBracketOnSameLine'],
-                     ['returnHelloWorldDefinedOnOneLine'],
-                     ['returnHelloWorldDefinedOnMultiLinesButStartsOnLineOne']);
+        $method_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'methodWithRequiredNonTypedHintedNonDefaultValuedParameter');
+
+        $method_closure(1);
+        $method_closure('string');
+        $method_closure(new StdClass());
+
+        try
+        {
+            $method_closure();
+            $this->fail('Closure of methodWithRequiredNonTypedHintedNonDefaultValuedParameter did not throw an error when called without a parameter');
+        }
+        catch (ArgumentCountError $e) {}
+    }
+
+    public function testCreatedClosureWithSingleTypeHintedParameterOnlyAcceptsAppropriateTypes()
+    {
+        $method_closure = ClassMixer::classMethodToRealClosure(ClassMixerTestClass::class, 'methodWithStringTypeHintedNonDefaultValuedParameter');
+
+        $method_closure('string');
+        $method_closure(11); //This should work becaue PHP will coerce the integer into a string
+
+        try
+        {
+            $method_closure(new StdClass());
+            $this->fail('Closure of methodWithStringTypeHintedNonDefaultValuedParameter did not throw an error when passed a non string parameter');
+        }
+        catch (TypeError $e) {}
     }
 }
