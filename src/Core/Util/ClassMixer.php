@@ -24,19 +24,37 @@ final class ClassMixer
         $closure_definition .= ')' . PHP_EOL;
         $lines = file($reflection_function->getFileName());
 
-        for ($line_number = $reflection_function->getStartLine(); $line_number < $reflection_function->getEndLine(); ++$line_number) {
-            $line = $lines[$line_number];
-
-            if ($line_number == $reflection_function->getStartLine() && strpos(trim($line), '{') !== 0)
+        if ($reflection_function->getStartLine() == $reflection_function->getEndLine())
+        {
+            if (preg_match("/function\s*&?\s*{$reflection_function->name}\s*\(.+?{(?P<function_body>.*)}/",
+                           $lines[$reflection_function->getStartLine() - 1],
+                           $matches))
             {
-                $line = '{ ' . PHP_EOL . $line;
+                $closure_definition .= ' {' . $matches['function_body'] . ' };';
             }
-            if ($line_number == $reflection_function->getEndLine() - 1)
+            else
             {
-                $line = substr_replace($line, ';', -1, 0);
+                // TODO: Error
             }
-            $closure_definition .= $line;
 
+        }
+        else
+        {
+            for ($line_number = $reflection_function->getStartLine(); $line_number < $reflection_function->getEndLine(); ++$line_number)
+            {
+                $line = $lines[$line_number];
+
+                if ($line_number == $reflection_function->getStartLine() && strpos(trim($line), '{') !== 0)
+                {
+                    $line = '{ ' . PHP_EOL . $line;
+                }
+                if ($line_number == $reflection_function->getEndLine() - 1)
+                {
+                    $line = substr_replace($line, ';', -1, 0);
+                }
+                $closure_definition .= $line;
+
+            }
         }
         return $closure_definition;
     }
@@ -73,7 +91,13 @@ final class ClassMixer
     public static function classMethodToRealClosure($class, $method) {
         $reflection_class = new ReflectionClass($class);
         $reflection_method = $reflection_class->getMethod($method);
-        eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_method));
+        print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_method) . PHP_EOL;
+        try {
+            eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_method));
+        } catch(\ParseError $e) {
+            print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_method) . PHP_EOL;
+
+        }
         return $closure;
     }
 }
