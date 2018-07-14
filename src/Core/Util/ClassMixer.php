@@ -15,41 +15,23 @@ final class ClassMixer
      * @param Closure $closure The closure
      * @return string
      */
-    public static function dumpReflectionFunctionAsClosure(ReflectionFunctionAbstract $reflection_method)
+    public static function dumpReflectionFunctionAsClosure(ReflectionFunctionAbstract $reflection_function)
     {
         $closure_definition = 'function (';
-        $method_parameter_strings = array();
-        foreach ($reflection_method->getParameters() as $method_parameters)
-        {
-            $parameter_string = '';
-            if ($method_parameters->isArray())
-            {
-                $parameter_string .= 'array ';
-            }
-            else if ($method_parameters->getClass())
-            {
-                $parameter_string .= $method_parameters->getClass()->name . ' ';
-            }
-            if($method_parameters->isPassedByReference())
-            {
-                $parameter_string .= '&';
-            }
-            $parameter_string .= '$' . $method_parameters->name;
-            if($method_parameters->isOptional())
-            {
-                $parameter_string .= ' = ' . var_export($method_parameters->getDefaultValue(), True);
-            }
-            $method_parameter_strings[] = $parameter_string;
-        }
+        $function_parameter_strings = self::getReflectionFunctionParametersAsStrings($reflection_function);
 
-        $closure_definition .= implode(', ', $method_parameter_strings);
+        $closure_definition .= implode(', ', $function_parameter_strings);
         $closure_definition .= ')' . PHP_EOL;
-        $lines = file($reflection_method->getFileName());
+        $lines = file($reflection_function->getFileName());
 
-        for ($line_number = $reflection_method->getStartLine(); $line_number < $reflection_method->getEndLine(); ++$line_number) {
+        for ($line_number = $reflection_function->getStartLine(); $line_number < $reflection_function->getEndLine(); ++$line_number) {
             $line = $lines[$line_number];
 
-            if ($line_number == $reflection_method->getEndLine() - 1)
+            if ($line_number == $reflection_function->getStartLine() && strpos(trim($line), '{') !== 0)
+            {
+                $line = '{ ' . PHP_EOL . $line;
+            }
+            if ($line_number == $reflection_function->getEndLine() - 1)
             {
                 $line = substr_replace($line, ';', -1, 0);
             }
@@ -57,6 +39,34 @@ final class ClassMixer
 
         }
         return $closure_definition;
+    }
+
+    private static function getReflectionFunctionParametersAsStrings(ReflectionFunctionAbstract $reflection_function)
+    {
+        $function_parameter_strings = array();
+        foreach ($reflection_function->getParameters() as $function_parameters)
+        {
+            $parameter_string = '';
+            if ($function_parameters->isArray())
+            {
+                $parameter_string .= 'array ';
+            }
+            else if ($function_parameters->getClass())
+            {
+                $parameter_string .= $function_parameters->getClass()->name . ' ';
+            }
+            if ($function_parameters->isPassedByReference())
+            {
+                $parameter_string .= '&';
+            }
+            $parameter_string .= '$' . $function_parameters->name;
+            if ($function_parameters->isOptional())
+            {
+                $parameter_string .= ' = ' . var_export($function_parameters->getDefaultValue(), True);
+            }
+            $function_parameter_strings[] = $parameter_string;
+        }
+        return $function_parameter_strings;
     }
 
 
