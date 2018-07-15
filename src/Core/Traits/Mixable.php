@@ -29,8 +29,10 @@ trait Mixable
     /**
      * Register a new function to this class
      *
-     * @param  string   $name  Name of the function we want this callable as
-     * @param  callable $macro A lambda or closure that will be added as a new function to this class
+     * @param  string   $name    Name of the function we want this callable as
+     * @param  callable $macro   A lambda or closure that will be added as a new function to this class
+     * @param  int      $context Context the function should be added to this class as (Public, Protected or Private),
+     *                           use the constants defined in ElephantWrench\Core\Util\ContextCallable
      */
     public static function mix(string $name, callable $macro, $context = ContextCallable::PUBLIC)
     {
@@ -47,11 +49,17 @@ trait Mixable
     protected static function mix_property(ReflectionProperty $property, $default_value = Null)
     {
         $property->default_value = $default_value;
-        //$property->context = $property->isPublic() ? 'PUBLIC' : ($property->isProtected() ? 'PROTECTED' : 'PRIVATE');
         static::$mixable_properties[static::class][$property->getName()] = $property;
     }
 
-    public static function getMixedPropertyClass(string $property, bool $private_property = False)
+    /**
+     * Return the class in this class's hierarchy that a property was added to or False if this class has no matching property
+     *
+     * @param  string $property The name of the property we want to check
+     *
+     * @return string|False
+     */
+    protected static function getMixedPropertyClass(string $property)
     {
         $class = static::class;
         while ($class !== False)
@@ -59,8 +67,7 @@ trait Mixable
             if (isset(static::$mixable_properties[$class][$property])) {
                 break;
             }
-            // If private_property is True set class to False to prevent checking parent classes
-            $class = $private_property ? False : get_parent_class($class);
+            $class = get_parent_class($class);
         }
         return $class;
     }
@@ -77,6 +84,11 @@ trait Mixable
         static::mixinMethodsFromReflectionClass($reflection_class);
     }
 
+    /**
+     * Mix all properties on a ReflectionClass into this class
+     *
+     * @param  ReflectionClass $reflection_class
+     */
     protected static function mixinPropertiesFromReflectionClass(ReflectionClass $reflection_class)
     {
         $default_property_values = $reflection_class->getDefaultProperties();
@@ -86,9 +98,13 @@ trait Mixable
                 static::mix_property($property, $default_property_values[$property->getName()]);
             }
         }
-
     }
 
+    /**
+     * Mix all methods on a ReflectionClass into this class
+     *
+     * @param  ReflectionClass $reflection_class
+     */
     protected static function mixinMethodsFromReflectionClass(ReflectionClass $reflection_class)
     {
         foreach ($reflection_class->getMethods() as $method)
@@ -99,7 +115,7 @@ trait Mixable
     }
 
     /**
-     * Returns which class a method was added at or False if it hasn't been added to this class
+     * Returns which class a method was added to or False if it hasn't been added to this class
      *
      * @param  string       $method
      *
@@ -153,7 +169,6 @@ trait Mixable
 
         $context_callable = static::$mixable_methods[$mixed_class][$method];
 
-
         if (!$context_callable->isPublic()) {
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
             $context_class = $backtrace[1]['class'] ?? '';
@@ -171,7 +186,6 @@ trait Mixable
                 }
             }
         }
-
 
         $closure = Closure::bind($context_callable->getCallable(), $this, $mixed_class);
 
