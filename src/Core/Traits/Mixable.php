@@ -9,7 +9,7 @@ use ReflectionProperty;
 use ReflectionException;
 use BadMethodCallException;
 
-use ElephantWrench\Core\Util\{ClassMixer, ContextCallable};
+use ElephantWrench\Core\Util\{ClassMixer, ContextClosure};
 
 trait Mixable
 {
@@ -31,13 +31,13 @@ trait Mixable
      * Register a new function to this class
      *
      * @param  string   $name    Name of the function we want this callable as
-     * @param  callable $macro   A lambda or closure that will be added as a new function to this class
+     * @param  Callable $macro   A lambda or closure that will be added as a new function to this class
      * @param  int      $context Context the function should be added to this class as (Public, Protected or Private),
-     *                           use the constants defined in ElephantWrench\Core\Util\ContextCallable
+     *                           use the constants defined in ElephantWrench\Core\Util\ContextClosure
      */
-    public static function mix(string $name, callable $macro, $context = ContextCallable::PUBLIC)
+    public static function mix(string $name, Callable $macro, $context = ContextClosure::PUBLIC)
     {
-        $callable_context = new ContextCallable($macro, $context);
+        $callable_context = new ContextClosure($macro, $context);
         static::$mixable_methods[static::class][$name] = $callable_context;
     }
 
@@ -110,7 +110,7 @@ trait Mixable
     {
         foreach ($reflection_class->getMethods() as $method)
         {
-            $context = $method->isPublic() ? ContextCallable::PUBLIC : ($method->isProtected() ? ContextCallable::PROTECTED : ContextCallable::PRIVATE);
+            $context = $method->isPublic() ? ContextClosure::PUBLIC : ($method->isProtected() ? ContextClosure::PROTECTED : ContextClosure::PRIVATE);
             static::mix($method->getName(), ClassMixer::reflectionFunctionToRealClosure($method), $context);
         }
     }
@@ -168,12 +168,12 @@ trait Mixable
             ));
         }
 
-        $context_callable = static::$mixable_methods[$mixed_class][$method];
+        $context_closure = static::$mixable_methods[$mixed_class][$method];
 
-        if (!$context_callable->isPublic()) {
+        if (!$context_closure->isPublic()) {
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
             $context_class = $backtrace[1]['class'] ?? '';
-            if ($context_callable->isProtected()) {
+            if ($context_closure->isProtected()) {
                 if ($context_class != $mixed_class && !is_subclass_of($context_class, $mixed_class)) {
                     throw new Error(sprintf(
                         "Call to protected method %s::%s() from context '%s'", $mixed_class, $method, $context_class
@@ -188,7 +188,7 @@ trait Mixable
             }
         }
 
-        $closure = Closure::bind($context_callable->getCallable(), $this, $mixed_class);
+        $closure = Closure::bind($context_closure->getClosure(), $this, $mixed_class);
 
         return $closure(...$parameters);
     }

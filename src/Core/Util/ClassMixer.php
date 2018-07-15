@@ -7,6 +7,8 @@ use ParseError;
 use ReflectionClass;
 use ReflectionFunctionAbstract;
 
+use ElephantWrench\Core\Exception\ClassMixerException;
+
 /**
  * This Class is used to create Closures of methods on classes that can
  * be mixed into other classes using the ElephantWrench\Core\Traits\Mixable Trait
@@ -55,7 +57,7 @@ final class ClassMixer
         }
         else
         {
-            // TODO: Error
+            throw new ClassMixerException("Could not parse function {$reflection_function->name} from file {$reflection_function->getFileName()}. Please make sure that multiple functions are not defined on the same line.");
         }
         $closure_definition .= '};';
 
@@ -131,8 +133,8 @@ final class ClassMixer
         try {
             eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_function));
         } catch(ParseError $e) {
-            print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_function) . PHP_EOL;
-            //TODO: Error
+            //print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_function) . PHP_EOL;
+            throw new ClassMixerException("Function {$reflection_function->getName()} was incorrectly parsed and failed to be built");
         }
         return $closure;
     }
