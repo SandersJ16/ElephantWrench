@@ -17,4 +17,19 @@ class MixinClass
     {
         return 'protected method';
     }
+
+    private function privateMethod()
+    {
+        return 'private method';
+    }
+
+    public function publicMethodCallProtectedMethod()
+    {
+        return $this->protectedMethod();
+    }
+
+    public function publicMethodCallPrivateMethod()
+    {
+        return $this->privateMethod();
+    }
 }

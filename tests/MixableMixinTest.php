@@ -92,4 +92,30 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
 
         $mixable_class->protectedMethod();
     }
+
+    public function testPrivateFunctionCantBeCalled()
+    {
+        $this->expectException(Error::class);
+
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+
+        $mixable_class->privateMethod();
+    }
+
+    public function testProtectedFunctionCanBeCalledFromInsideAnotherFunction()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+
+        $this->assertEquals('protected method', $mixable_class->publicMethodCallProtectedMethod());
+    }
+
+    public function testPrivateFunctionCanBeCalledFromInsideAnotherFunction()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+
+        $this->assertEquals('private method', $mixable_class->publicMethodCallPrivateMethod());
+    }
 }

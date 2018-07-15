@@ -2,6 +2,7 @@
 
 namespace ElephantWrench\Core\Traits;
 
+use Error;
 use Closure;
 use ReflectionClass;
 use ReflectionProperty;
@@ -163,17 +164,17 @@ trait Mixable
         $mixed_class = static::getMixedMethodClass($method);
         if (!$mixed_class) {
             throw new Error(sprintf(
-                'Call to undefined method %s::%s', static::class, $method
+                'Call to undefined method %s::%s()', static::class, $method
             ));
         }
 
         $context_callable = static::$mixable_methods[$mixed_class][$method];
 
         if (!$context_callable->isPublic()) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
             $context_class = $backtrace[1]['class'] ?? '';
             if ($context_callable->isProtected()) {
-                if ($context_class != $mixed_class || !is_subclass_of($context_class, $mixed_class)) {
+                if ($context_class != $mixed_class && !is_subclass_of($context_class, $mixed_class)) {
                     throw new Error(sprintf(
                         "Call to protected method %s::%s() from context '%s'", $mixed_class, $method, $context_class
                     ));
