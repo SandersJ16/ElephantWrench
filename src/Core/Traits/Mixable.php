@@ -8,7 +8,7 @@ use ReflectionProperty;
 use ReflectionException;
 use BadMethodCallException;
 
-use ElephantWrench\Core\Util\ClassMixer;
+use ElephantWrench\Core\Util\{ClassMixer, ContextCallable};
 
 trait Mixable
 {
@@ -32,9 +32,10 @@ trait Mixable
      * @param  string   $name  Name of the function we want this callable as
      * @param  callable $macro A lambda or closure that will be added as a new function to this class
      */
-    public static function mix(string $name, callable $macro)
+    public static function mix(string $name, callable $macro, $context = ContextCallable::PUBLIC)
     {
-        static::$mixable_methods[static::class][$name] = $macro;
+        $callable_context = new ContextCallable($macro, $context);
+        static::$mixable_methods[static::class][$name] = $callable_context;
     }
 
     /**
@@ -46,13 +47,15 @@ trait Mixable
     protected static function mix_property(ReflectionProperty $property, $default_value = Null)
     {
         $property->default_value = $default_value;
+        //$property->context = $property->isPublic() ? 'PUBLIC' : ($property->isProtected() ? 'PROTECTED' : 'PRIVATE');
         static::$mixable_properties[static::class][$property->getName()] = $property;
     }
 
     public static function getMixedPropertyClass(string $property, bool $private_property = False)
     {
         $class = static::class;
-        while ($class !== False) {
+        while ($class !== False)
+        {
             if (isset(static::$mixable_properties[$class][$property])) {
                 break;
             }
@@ -71,7 +74,7 @@ trait Mixable
     {
         $reflection_class = new ReflectionClass($mixin);
         static::mixinPropertiesFromReflectionClass($reflection_class);
-        static::mixinMethodsFromReflectionClass($reflection_class, $mixin);
+        static::mixinMethodsFromReflectionClass($reflection_class);
     }
 
     protected static function mixinPropertiesFromReflectionClass(ReflectionClass $reflection_class)
@@ -86,26 +89,12 @@ trait Mixable
 
     }
 
-    protected static function mixinMethodsFromReflectionClass(ReflectionClass $reflection_class, $mixin)
+    protected static function mixinMethodsFromReflectionClass(ReflectionClass $reflection_class)
     {
-        $methods = $reflection_class->getMethods(
-            //ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_PROTECTED
-        );
-        if (!is_object($mixin)) {
-            try
-            {
-                $mixin = $reflection_class->newInstance('test');
-            }
-            catch (ReflectionException $e)
-            {
-                $mixin = $reflection_class->newInstanceWithoutConstructor();
-            }
-        }
-        foreach ($methods as $method) {
-            //static::mix($method->getName(), $method->getClosure($mixin));
-            static::mix($method->getName(), ClassMixer::reflectionFunctionToRealClosure($method));
-            //$method->setAccessible(true);
-            //static::macro($method->name, $method->invoke($mixin));
+        foreach ($reflection_class->getMethods() as $method)
+        {
+            $context = $method->isPublic() ? ContextCallable::PUBLIC : ($method->isProtected() ? ContextCallable::PROTECTED : ContextCallable::PRIVATE);
+            static::mix($method->getName(), ClassMixer::reflectionFunctionToRealClosure($method), $context);
         }
     }
 
@@ -119,7 +108,8 @@ trait Mixable
     public static function getMixedMethodClass(string $method)
     {
         $class = static::class;
-        while ($class !== False) {
+        while ($class !== False)
+        {
             if (isset(static::$mixable_methods[$class][$method])) {
                 break;
             }
@@ -149,19 +139,41 @@ trait Mixable
      *
      * @return mixed
      *
-     * @throws \BadMethodCallException
+     * @throws \Error
      */
     public function __call(string $method, array $parameters)
     {
+
         $mixed_class = static::getMixedMethodClass($method);
         if (!$mixed_class) {
-            throw new BadMethodCallException(sprintf(
-                'Method %s::%s does not exist.', static::class, $method
+            throw new Error(sprintf(
+                'Call to undefined method %s::%s', static::class, $method
             ));
         }
 
-        $callable = static::$mixable_methods[$mixed_class][$method];
-        $closure = Closure::bind($callable, $this, $mixed_class);
+        $context_callable = static::$mixable_methods[$mixed_class][$method];
+
+
+        if (!$context_callable->isPublic()) {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
+            $context_class = $backtrace[1]['class'] ?? '';
+            if ($context_callable->isProtected()) {
+                if ($context_class != $mixed_class || !is_subclass_of($context_class, $mixed_class)) {
+                    throw new Error(sprintf(
+                        "Call to protected method %s::%s() from context '%s'", $mixed_class, $method, $context_class
+                    ));
+                }
+            } else {
+                if ($context_class != $mixed_class) {
+                    throw new Error(sprintf(
+                        "Call to private method %s::%s() from context '%s'", $mixed_class, $method, $context_class
+                    ));
+                }
+            }
+        }
+
+
+        $closure = Closure::bind($context_callable->getCallable(), $this, $mixed_class);
 
         return $closure(...$parameters);
     }

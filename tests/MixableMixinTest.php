@@ -2,6 +2,7 @@
 
 namespace ElephantWrench\Test;
 
+use Error;
 use PHPUnit_Framework_Error_Notice;
 
 use ElephantWrench\Test\Helpers\{MixableTestClass, MixableTestSubClass, MixinClass};
@@ -79,6 +80,16 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
     {
         MixableTestClass::mixin(MixinClass::class);
         $mixable_class = new MixableTestClass();
-        $mixable_class->publicMethod();
+        $this->assertEquals('public method', $mixable_class->publicMethod());
+    }
+
+    public function testProtectedFunctionCantBeCalled()
+    {
+        $this->expectException(Error::class);
+
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+
+        $mixable_class->protectedMethod();
     }
 }

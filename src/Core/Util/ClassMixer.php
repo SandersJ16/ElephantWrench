@@ -20,7 +20,6 @@ final class ClassMixer
      */
     private function __construct() {}
 
-
     /**
      * Given reflection function return a string that can be evaled to give you a closure equivalent to the function
      *

@@ -8,5 +8,13 @@ class MixinClass
     protected $protected_mixin_property = 'protected mixin property';
     private $private_mixin_property = 'private mixin property';
 
-    public function publicMethod() {}
+    public function publicMethod()
+    {
+        return 'public method';
+    }
+
+    protected function protectedMethod()
+    {
+        return 'protected method';
+    }
 }
