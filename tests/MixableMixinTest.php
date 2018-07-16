@@ -168,14 +168,10 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
 
     /**
      * Test that a protected property added through a mixed in class modified
-     * on an instanticiated instance is modified and remains protected
-     *
-     * @expectedException \Error
+     * on an instanticiated instance is modified
      */
-    public function testModifiedProtectedPropertyReturnsModifiedValueAndPropertyRemainsProtected()
+    public function testModifiedProtectedPropertyReturnsModifiedValue()
     {
-        $this->expectException(Error::class);
-
         MixableTestClass::mixin(MixinClass::class);
         $mixable_class = new MixableTestClass();
 
@@ -183,6 +179,38 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
         $mixable_class->publicMethodThatSetsProtectedProperty($new_protected_property_value);
 
         $this->assertEquals($new_protected_property_value, $mixable_class->publicMethodReturnProtectedProperty());
+    }
+
+    /**
+     * Test that a private property added through a mixed in class modified
+     * on an instanticiated instance is modified
+     */
+    public function testModifiedPrivatePropertyReturnsModifiedValue()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+
+        $new_private_property_value = 'new private mixin property value';
+        $mixable_class->publicMethodThatSetsPrivateProperty($new_private_property_value);
+
+        $this->assertEquals($new_private_property_value, $mixable_class->publicMethodReturnPrivateProperty());
+
+    }
+
+    /**
+     * Test that a protected property added through a mixed in class modified
+     * on an instanticiated instance remains protected
+     *
+     * @expectedException \Error
+     */
+    public function testModifiedProtectedPropertyRemainsProtected()
+    {
+        $this->expectException(Error::class);
+
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+
+        $mixable_class->publicMethodThatSetsProtectedProperty('new protected mixin property value');
 
         $mixable_class->protected_mixin_property;
     }
@@ -193,17 +221,14 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
      *
      * @expectedException \Error
      */
-    public function testModifiedPrivatePropertyReturnsModifiedValueAndPropertyRemainsProtected()
+    public function testModifiedPrivatePropertyRemainsProtected()
     {
         $this->expectException(Error::class);
 
         MixableTestClass::mixin(MixinClass::class);
         $mixable_class = new MixableTestClass();
 
-        $new_private_property_value = 'new private mixin property value';
-        $mixable_class->publicMethodThatSetsPrivateProperty($new_private_property_value);
-
-        $this->assertEquals($new_private_property_value, $mixable_class->publicMethodReturnPrivateProperty());
+        $mixable_class->publicMethodThatSetsPrivateProperty('new private mixin property value');
 
         $mixable_class->private_mixin_property;
     }
