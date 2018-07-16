@@ -32,4 +32,19 @@ class MixinClass
     {
         return $this->privateMethod();
     }
+
+    public function publicMethodReturnProtectedProperty()
+    {
+        return $this->protected_mixin_property;
+    }
+
+    public function publicMethodReturnPrivateProperty()
+    {
+        return $this->private_mixin_property;
+    }
+
+    public function publicMethodThatSetsProtectedProperty($value)
+    {
+        $this->protected_mixin_property = $value;
+    }
 }

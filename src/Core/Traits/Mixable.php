@@ -28,6 +28,15 @@ trait Mixable
     protected static $mixable_properties = array();
 
     /**
+     * Used to keep track of all mixed properties on a specific instance of this class, this array
+     * will only get populated with values that have been changed from their default value, otherwise
+     * their default values are used (these are stored on the properties in $mixable_properties)
+     *
+     * @var array
+     */
+    protected $mixable_instance_properties = array();
+
+    /**
      * Register a new function to this class
      *
      * @param  string   $name    Name of the function we want this callable as
@@ -203,15 +212,62 @@ trait Mixable
     public function __get(string $name)
     {
         $mixed_class = static::getMixedPropertyClass($name);
-        if ($mixed_class) {
-            $property = static::$mixable_properties[$mixed_class][$name];
-            if ($property->isPublic()) {
-                return $property->default_value;
+        if (!$mixed_class) {
+            trigger_error(sprintf(
+                'Undefined Property: %s::%s', static::class, $name
+            ), E_USER_NOTICE);
+        }
+
+        $property = static::$mixable_properties[$mixed_class][$name];
+
+        if (!$property->isPublic()) {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $context_class = $backtrace[1]['class'] ?? '';
+            if ($property->isProtected()) {
+                if ($context_class != $mixed_class && !is_subclass_of($context_class, $mixed_class)) {
+                    throw new Error(sprintf(
+                        "Cannot access protected property %s::%s", $mixed_class, $name
+                    ));
+                }
+            } else {
+                if ($context_class != $mixed_class) {
+                    throw new Error(sprintf(
+                        "Cannot access private property %s::%s", $mixed_class, $name
+                    ));
+                }
             }
         }
 
-        trigger_error(sprintf(
-            'Undefined Property: %s::%s', static::class, $name
-        ), E_USER_NOTICE);
+        return $this->mixable_instance_properties[$name] ?? $property->default_value;
+    }
+
+    public function __set(string $name, $value)
+    {
+        $mixed_class = static::getMixedPropertyClass($name);
+        if (!$mixed_class) {
+            $this->$name = $value;
+        } else {
+            $property = static::$mixable_properties[$mixed_class][$name];
+
+            if (!$property->isPublic()) {
+                $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+                $context_class = $backtrace[1]['class'] ?? '';
+                if ($property->isProtected()) {
+                    if ($context_class != $mixed_class && !is_subclass_of($context_class, $mixed_class)) {
+                        throw new Error(sprintf(
+                            "Cannot access protected property %s::%s", $mixed_class, $name
+                        ));
+                    }
+                } else {
+                    if ($context_class != $mixed_class) {
+                        throw new Error(sprintf(
+                            "Cannot access private property %s::%s", $mixed_class, $name
+                        ));
+                    }
+                }
+            }
+
+            $this->mixable_instance_properties[$name] = $value;
+        }
     }
 }

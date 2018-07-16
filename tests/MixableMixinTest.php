@@ -3,7 +3,6 @@
 namespace ElephantWrench\Test;
 
 use Error;
-use PHPUnit_Framework_Error_Notice;
 
 use ElephantWrench\Test\Helpers\{MixableTestClass, MixableTestSubClass, MixinClass};
 
@@ -34,11 +33,11 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
     /**
      * Test that a protected property added through a mixin can NOT be accessed directly on an instance of the mixable class
      *
-     * @expectedException PHPUnit_Framework_Error_Notice
+     * @expectedException \Error
      */
     public function testAccessingProtectedMixedPropertyDirectlyIsNotAllowed()
     {
-        $this->expectException(PHPUnit_Framework_Error_Notice::class);
+        $this->expectException(Error::class);
 
         MixableTestClass::mixin(MixinClass::class);
         $mixable_class = new MixableTestClass();
@@ -48,11 +47,11 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
     /**
      * Test that a private property added through a mixin can NOT be accessed directly on an instance of the mixable class
      *
-     * @expectedException PHPUnit_Framework_Error_Notice
+     * @expectedException \Error
      */
     public function testAccessingPrivateMixedPropertyDirectlyIsNotAllowed()
     {
-        $this->expectException(PHPUnit_Framework_Error_Notice::class);
+        $this->expectException(Error::class);
 
         MixableTestClass::mixin(MixinClass::class);
         $mixable_class = new MixableTestClass();
@@ -124,7 +123,7 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that a public method adde through a mixed in class can call a protected method added through that same class
+     * Test that a public method added through a mixed in class can call a protected method added through that same class
      */
     public function testProtectedFunctionCanBeCalledFromInsideAnotherFunction()
     {
@@ -135,7 +134,7 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that a public method adde through a mixed in class can call a private method added through that same class
+     * Test that a public method added through a mixed in class can call a private method added through that same class
      */
     public function testPrivateFunctionCanBeCalledFromInsideAnotherFunction()
     {
@@ -143,5 +142,48 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
         $mixable_class = new MixableTestClass();
 
         $this->assertEquals('private method', $mixable_class->publicMethodCallPrivateMethod());
+    }
+
+    /**
+     * Test that a protected property added through a mixed in class can be accessed through a function on that class
+     */
+    public function testProtectedPropertyCanBeAccessedFromInsideAClassFunction()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+
+        $this->assertEquals('protected mixin property', $mixable_class->publicMethodReturnProtectedProperty());
+    }
+
+    /**
+     * Test that a private property added through a mixed in class can be accessed through a function on that class
+     */
+    public function testPrivatePropertyCanBeAccessedFromInsideAClassFunction()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+
+        $this->assertEquals('private mixin property', $mixable_class->publicMethodReturnPrivateProperty());
+    }
+
+    /**
+     * Test that a protected property added through a mixed in class modified
+     * on an instanticiated instance is modified and remains protected
+     *
+     * @expectedException \Error
+     */
+    public function testModifiedProtectedPropertyReturnsModifiedValueAndPropertyRemainsProtected()
+    {
+        $this->expectException(Error::class);
+
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class = new MixableTestClass();
+
+        $new_protected_property_value = 'new protected mixin property value';
+        $mixable_class->publicMethodThatSetsProtectedProperty($new_protected_property_value);
+
+        $this->assertEquals($new_protected_property_value, $mixable_class->publicMethodReturnProtectedProperty());
+
+        $mixable_class->protected_mixin_property;
     }
 }
