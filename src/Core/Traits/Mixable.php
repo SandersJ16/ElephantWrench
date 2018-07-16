@@ -176,7 +176,7 @@ trait Mixable
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
             $context_class = $backtrace[1]['class'] ?? '';
             throw new Error(sprintf(
-                "Cannot access non-public method %s::%s() from context '$s'", static::class, $method, $context_class
+                "Cannot access non-public method %s::%s() from context '%s'", static::class, $method, $context_class
             ));
         }
 
