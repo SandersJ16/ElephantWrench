@@ -232,4 +232,34 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
 
         $mixable_class->private_mixin_property;
     }
+
+    /**
+     * Test that a protected property added through a mixed in class modified
+     * on an instanticiated instance is modified only for the one instance of that class
+     */
+    public function testModifiedProtectedPropertyOnlyModifiedForSingleInstanceOfClass()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class_1 = new MixableTestClass();
+        $mixable_class_2 = new MixableTestClass();
+
+        $mixable_class_1->publicMethodThatSetsProtectedProperty('new protected mixin property value');
+
+        $this->assertNotEquals($mixable_class_2->publicMethodReturnProtectedProperty(), $mixable_class_1->publicMethodReturnProtectedProperty());
+    }
+
+    /**
+     * Test that a private property added through a mixed in class modified
+     * on an instanticiated instance is modified only for the one instance of that class
+     */
+    public function testModifiedPrivatePropertyOnlyModifiedForSingleInstanceOfClass()
+    {
+        MixableTestClass::mixin(MixinClass::class);
+        $mixable_class_1 = new MixableTestClass();
+        $mixable_class_2 = new MixableTestClass();
+
+        $mixable_class_1->publicMethodThatSetsPrivateProperty('new private mixin property value');
+
+        $this->assertNotEquals($mixable_class_2->publicMethodReturnPrivateProperty(), $mixable_class_1->publicMethodReturnPrivateProperty());
+    }
 }
