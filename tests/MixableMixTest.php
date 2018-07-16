@@ -3,7 +3,6 @@
 namespace ElephantWrench\Test;
 
 use Error;
-use PHPUnit_Framework_Error_Notice;
 use ElephantWrench\Test\Helpers\{MixableTestClass, MixableTestSubClass};
 
 /**
@@ -135,13 +134,11 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
      * Test that a function added to the subclass of a Mixable can
      * NOT use a private non-static property defined on the Mixable
      *
-     * @expectedException PHPUnit_Framework_Error_Notice
+     * @expectedException Error
      */
     public function testAddingFunctionThatUsesParentExistingMixableClassPrivatePropertyFromSubclass()
     {
-        // `Undefined Property` error does not throw a Throwable so PHPUnit handles it
-        // using `set_error_handler()` and then throws a PHPUnit_Framework_Error_Notice
-        $this->expectException(PHPUnit_Framework_Error_Notice::class);
+        $this->expectException(Error::class);
 
         $mixable_subclass = new MixableTestSubClass();
         $mixable_subclass::mix('getPrivateProperty', function() {

@@ -262,4 +262,48 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
 
         $this->assertNotEquals($mixable_class_2->publicMethodReturnPrivateProperty(), $mixable_class_1->publicMethodReturnPrivateProperty());
     }
+
+    /**
+     * Test that our __get function doesn't allow the returning of protected properties on the class
+     *
+     * @expectedException \Error
+     */
+    public function testGetFunctionDoesntAllowReturningOfNonMixedProtectedProperties()
+    {
+        $this->expectException(Error::class);
+
+        $mixable_class = new MixableTestClass();
+
+        $mixable_class->protected_property;
+    }
+
+    /**
+     * Test that our __set function doesn't allow the setting of protected properties on the class
+     *
+     * @expectedException \Error
+     */
+    public function testSetFunctionDoesntAllowSettingOfNonMixedProtectedProperties()
+    {
+        $this->expectException(Error::class);
+
+        $mixable_class = new MixableTestClass();
+
+        $mixable_class->protected_property = 'test';
+    }
+
+    /**
+     * Test that our __call function doesn't allow the calling of protected methods on the class
+     *
+     * @expectedException \Error
+     */
+    public function testCallFunctionDoesntAllowSettingOfNonMixedProtectedProperties()
+    {
+        $this->expectException(Error::class);
+
+        $mixable_class = new MixableTestClass();
+
+        $mixable_class->protectedNonMixedMethod();
+    }
+
+
 }
