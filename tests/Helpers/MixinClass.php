@@ -47,4 +47,9 @@ class MixinClass
     {
         $this->protected_mixin_property = $value;
     }
+
+    public function publicMethodThatSetsPrivateProperty($value)
+    {
+        $this->private_mixin_property = $value;
+    }
 }
