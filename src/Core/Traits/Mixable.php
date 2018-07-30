@@ -40,11 +40,11 @@ trait Mixable
      * Register a new function to this class
      *
      * @param  string   $name    Name of the function we want this callable as
-     * @param  Callable $macro   A lambda or closure that will be added as a new function to this class
+     * @param  callable $macro   A lambda or closure that will be added as a new function to this class
      * @param  int      $context Context the function should be added to this class as (Public, Protected or Private),
      *                           use the constants defined in ElephantWrench\Core\Util\ContextClosure
      */
-    public static function mix(string $name, Callable $macro, $context = ContextClosure::PUBLIC)
+    public static function mix(string $name, callable $macro, $context = ContextClosure::PUBLIC)
     {
         $callable_context = new ContextClosure($macro, $context);
         static::$mixable_methods[static::class][$name] = $callable_context;
@@ -56,24 +56,23 @@ trait Mixable
      * @param  ReflectionProperty $property
      * @param  mixed              $default_value Default value for this property
      */
-    protected static function mix_property(ReflectionProperty $property, $default_value = Null)
+    protected static function mixProperty(ReflectionProperty $property, $default_value = null)
     {
         $property->default_value = $default_value;
         static::$mixable_properties[static::class][$property->getName()] = $property;
     }
 
     /**
-     * Return the class in this class's hierarchy that a property was added to or False if this class has no matching property
+     * Return the class in this class's hierarchy that a property was added to or false if this class has no matching property
      *
      * @param  string $property The name of the property we want to check
      *
-     * @return string|False
+     * @return string|false
      */
     protected static function getMixedPropertyClass(string $property)
     {
         $class = static::class;
-        while ($class !== False)
-        {
+        while ($class !== false) {
             if (isset(static::$mixable_properties[$class][$property])) {
                 break;
             }
@@ -102,10 +101,9 @@ trait Mixable
     protected static function mixinPropertiesFromReflectionClass(ReflectionClass $reflection_class)
     {
         $default_property_values = $reflection_class->getDefaultProperties();
-        foreach ($reflection_class->getProperties() as $property)
-        {
+        foreach ($reflection_class->getProperties() as $property) {
             if ($property->isDefault()) {
-                static::mix_property($property, $default_property_values[$property->getName()]);
+                static::mixProperty($property, $default_property_values[$property->getName()]);
             }
         }
     }
@@ -117,25 +115,23 @@ trait Mixable
      */
     protected static function mixinMethodsFromReflectionClass(ReflectionClass $reflection_class)
     {
-        foreach ($reflection_class->getMethods() as $method)
-        {
+        foreach ($reflection_class->getMethods() as $method) {
             $context = $method->isPublic() ? ContextClosure::PUBLIC : ($method->isProtected() ? ContextClosure::PROTECTED : ContextClosure::PRIVATE);
             static::mix($method->getName(), ClassMixer::reflectionFunctionToRealClosure($method), $context);
         }
     }
 
     /**
-     * Returns which class a method was added to or False if it hasn't been added to this class
+     * Returns which class a method was added to or false if it hasn't been added to this class
      *
      * @param  string       $method
      *
-     * @return string|False
+     * @return string|false
      */
     public static function getMixedMethodClass(string $method)
     {
         $class = static::class;
-        while ($class !== False)
-        {
+        while ($class !== false) {
             if (isset(static::$mixable_methods[$class][$method])) {
                 break;
             }
@@ -231,19 +227,19 @@ trait Mixable
         //in the wrong context
         if (property_exists($this, $name)) {
             throw new Error(sprintf(
-                    "Cannot access non-public property %s::%s", static::class, $name
-                ));
+                "Cannot access non-public property %s::%s", static::class, $name
+            ));
         }
 
         $mixed_class = static::getMixedPropertyClass($name);
 
         //If we don't have a mixed class then we trigger an E_USER_NOTICE
-        //as this is default PHP behaviour and return Null
+        //as this is default PHP behaviour and return null
         if (!$mixed_class) {
             trigger_error(sprintf(
                 'Undefined Property: %s::%s', static::class, $name
             ), E_USER_NOTICE);
-            return Null;
+            return null;
         }
 
         //If we get to this part of the function than we are dealing with a mixed in property

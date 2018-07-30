@@ -63,7 +63,7 @@ class ContextClosure
      */
     public function setContext($context)
     {
-        if(!in_array($context, array(self::PUBLIC, self::PROTECTED, self::PRIVATE))) {
+        if (!in_array($context, array(self::PUBLIC, self::PROTECTED, self::PRIVATE))) {
             throw new ContextCallableException("Context must be on of {self::class}::PUBLIC, {self::class}::PROTECTED, {self::class}::PRIVATE");
         }
         $this->context = $context;

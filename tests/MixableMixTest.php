@@ -54,7 +54,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassPublicProperty()
     {
         $mixable_class = new MixableTestClass();
-        $mixable_class::mix('getPublicProperty', function() {
+        $mixable_class::mix('getPublicProperty', function () {
             return $this->public_property;
         });
         $this->assertEquals($mixable_class->public_property, $mixable_class->getPublicProperty());
@@ -67,7 +67,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassProtectedProperty()
     {
         $mixable_class = new MixableTestClass();
-        $mixable_class::mix('getProtectedProperty', function() {
+        $mixable_class::mix('getProtectedProperty', function () {
             return $this->protected_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'protected_property'), $mixable_class->getProtectedProperty());
@@ -80,7 +80,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassPrivateProperty()
     {
         $mixable_class = new MixableTestClass();
-        $mixable_class::mix('getPrivateProperty', function() {
+        $mixable_class::mix('getPrivateProperty', function () {
             return $this->private_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'private_property'), $mixable_class->getPrivateProperty());
@@ -94,7 +94,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     {
         $mixable_class = new MixableTestClass();
         $mixable_subclass = new MixableTestSubClass();
-        $mixable_class::mix('getPublicProperty', function() {
+        $mixable_class::mix('getPublicProperty', function () {
             return $this->public_property;
         });
         $this->assertEquals($mixable_subclass->public_property, $mixable_subclass->getPublicProperty());
@@ -108,7 +108,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     {
         $mixable_class = new MixableTestClass();
         $mixable_subclass = new MixableTestSubClass();
-        $mixable_class::mix('getProtectedProperty', function() {
+        $mixable_class::mix('getProtectedProperty', function () {
             return $this->protected_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_subclass, 'protected_property'), $mixable_subclass->getProtectedProperty());
@@ -122,7 +122,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     {
         $mixable_class = new MixableTestClass();
         $mixable_subclass = new MixableTestSubClass();
-        $mixable_class::mix('getPrivateProperty', function() {
+        $mixable_class::mix('getPrivateProperty', function () {
             return $this->private_property;
         });
 
@@ -141,7 +141,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
         $this->expectException(Error::class);
 
         $mixable_subclass = new MixableTestSubClass();
-        $mixable_subclass::mix('getPrivateProperty', function() {
+        $mixable_subclass::mix('getPrivateProperty', function () {
             return $this->private_property;
         });
 
@@ -158,7 +158,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassStaticPublicProperty()
     {
         $mixable_class = new MixableTestClass();
-        $mixable_class::mix('getStaticPublicProperty', function() {
+        $mixable_class::mix('getStaticPublicProperty', function () {
             return self::$static_public_property;
         });
         $this->assertEquals($mixable_class::$static_public_property, $mixable_class->getStaticPublicProperty());
@@ -171,7 +171,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassStaticProtectedProperty()
     {
         $mixable_class = new MixableTestClass();
-        $mixable_class::mix('getStaticProtectedProperty', function() {
+        $mixable_class::mix('getStaticProtectedProperty', function () {
             return self::$static_protected_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'static_protected_property'), $mixable_class->getStaticProtectedProperty());
@@ -184,7 +184,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassStaticPrivateProperty()
     {
         $mixable_class = new MixableTestClass();
-        $mixable_class::mix('getStaticPrivateProperty', function() {
+        $mixable_class::mix('getStaticPrivateProperty', function () {
             return self::$static_private_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'static_private_property'), $mixable_class->getStaticPrivateProperty());
@@ -197,7 +197,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassStaticPublicPropertyCallableFromMixableSubclassWhenUsingStaticToAccessProperty()
     {
         $mixable_subclass = new MixableTestSubClass();
-        MixableTestClass::mix('getStaticPublicProperty', function() {
+        MixableTestClass::mix('getStaticPublicProperty', function () {
             return static::$static_public_property;
         });
         $this->assertEquals($mixable_subclass::$static_public_property, $mixable_subclass->getStaticPublicProperty());
@@ -210,7 +210,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassStaticProtectedPropertyCallableFromMixableSubclassWhenUsingStaticToAccessProperty()
     {
         $mixable_subclass = new MixableTestSubClass();
-        MixableTestClass::mix('getStaticProtectedProperty', function() {
+        MixableTestClass::mix('getStaticProtectedProperty', function () {
             return static::$static_protected_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_subclass, 'static_protected_property'), $mixable_subclass->getStaticProtectedProperty());
@@ -227,7 +227,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
         $this->expectException(Error::class);
 
         $mixable_subclass = new MixableTestSubClass();
-        MixableTestClass::mix('getStaticPrivateProperty', function() {
+        MixableTestClass::mix('getStaticPrivateProperty', function () {
             return static::$static_private_property;
         });
 
@@ -246,7 +246,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassStaticPublicPropertyCallableFromMixableSubclassWhenUsingSelfToAccessProperty()
     {
         $mixable_subclass = new MixableTestSubClass();
-        MixableTestClass::mix('getStaticPublicProperty', function() {
+        MixableTestClass::mix('getStaticPublicProperty', function () {
             return self::$static_public_property;
         });
         $this->assertEquals(MixableTestClass::$static_public_property, $mixable_subclass->getStaticPublicProperty());
@@ -262,7 +262,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     {
         $mixable_class = new MixableTestClass();
         $mixable_subclass = new MixableTestSubClass();
-        MixableTestClass::mix('getStaticProtectedProperty', function() {
+        MixableTestClass::mix('getStaticProtectedProperty', function () {
             return self::$static_protected_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'static_protected_property'), $mixable_subclass->getStaticProtectedProperty());
@@ -278,7 +278,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     {
         $mixable_class = new MixableTestClass();
         $mixable_subclass = new MixableTestSubClass();
-        MixableTestClass::mix('getStaticPrivateProperty', function() {
+        MixableTestClass::mix('getStaticPrivateProperty', function () {
             return self::$static_private_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_class, 'static_private_property'), $mixable_subclass->getStaticPrivateProperty());
@@ -293,7 +293,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassStaticPublicPropertyToMixableSubclassThatOverridesParentsProperty()
     {
         $mixable_subclass = new MixableTestSubClass();
-        MixableTestSubClass::mix('getStaticPublicProperty', function() {
+        MixableTestSubClass::mix('getStaticPublicProperty', function () {
             return self::$static_public_property;
         });
         $this->assertEquals(MixableTestSubClass::$static_public_property, $mixable_subclass->getStaticPublicProperty());
@@ -308,7 +308,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassStaticProtectedPropertyToMixableSubclassThatOverridesParentsProperty()
     {
         $mixable_subclass = new MixableTestSubClass();
-        MixableTestSubClass::mix('getStaticProtectedProperty', function() {
+        MixableTestSubClass::mix('getStaticProtectedProperty', function () {
             return self::$static_protected_property;
         });
         $this->assertEquals($this->getNonPublicProperty($mixable_subclass, 'static_protected_property'), $mixable_subclass->getStaticProtectedProperty());
@@ -323,9 +323,12 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
     public function testAddingFunctionThatUsesExistingMixableClassStaticPrivatePropertyToMixableSubclassThatOverridesParentsProperty()
     {
         $mixable_subclass = new MixableTestSubClass();
-        MixableTestSubClass::mix('getStaticPrivateProperty', function() {
+        MixableTestSubClass::mix('getStaticPrivateProperty', function () {
             return self::$static_private_property;
         });
-        $this->assertEquals($this->getNonPublicProperty($mixable_subclass, 'static_private_property'), $mixable_subclass->getStaticPrivateProperty());
+        $this->assertEquals(
+            $this->getNonPublicProperty($mixable_subclass, 'static_private_property'),
+            $mixable_subclass->getStaticPrivateProperty()
+        );
     }
 }

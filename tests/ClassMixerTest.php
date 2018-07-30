@@ -52,12 +52,11 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
         $method_closure('string');
         $method_closure(new StdClass());
 
-        try
-        {
+        try {
             $method_closure();
             $this->fail('Closure of ClassMixerTestClass::methodWithRequiredNonTypedHintedNonDefaultValuedParameter did not throw an error when called without a parameter');
+        } catch (ArgumentCountError $e) {
         }
-        catch (ArgumentCountError $e) {}
     }
 
     /**
@@ -70,12 +69,11 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
         $method_closure('string');
         $method_closure(6); //This should work becaue PHP will coerce the integer into a string
 
-        try
-        {
+        try {
             $method_closure(new StdClass());
             $this->fail('Closure of ClassMixerTestClass::methodWithStringTypeHintedNonDefaultValuedParameter did not throw an error when passed a non string parameter');
+        } catch (TypeError $e) {
         }
-        catch (TypeError $e) {}
     }
 
     /**
@@ -100,11 +98,10 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
         $this->assertInternalType('string', $method_closure('string'));
         $this->assertInternalType('string', $method_closure(16)); //This should work becaue PHP will coerce the integer into a string
 
-        try
-        {
+        try {
             $method_closure(new StdClass());
             $this->fail('Closure of ClassMixerTestClass::methodWithStringReturnTypeThatReturnsItsFirstParameter allowed return type of non string');
+        } catch (TypeError $e) {
         }
-        catch (TypeError $e) {}
     }
 }

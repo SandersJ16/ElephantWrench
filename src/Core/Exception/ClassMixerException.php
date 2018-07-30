@@ -2,4 +2,6 @@
 
 namespace ElephantWrench\Core\Exception;
 
-class ClassMixerException extends Exception {}
+class ClassMixerException extends Exception
+{
+}

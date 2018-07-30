@@ -41,8 +41,7 @@ class ElephantWrenchBaseTestCase extends TestCase
      */
     public static function setUpBeforeClass()
     {
-        foreach (static::$reset_classes as $reset_class)
-        {
+        foreach (static::$reset_classes as $reset_class) {
             static::saveStaticProperties($reset_class);
         }
     }
@@ -54,8 +53,7 @@ class ElephantWrenchBaseTestCase extends TestCase
      */
     public function setUp()
     {
-        foreach (static::$reset_classes as $reset_class)
-        {
+        foreach (static::$reset_classes as $reset_class) {
             static::restoreStaticProperties($reset_class);
         }
     }
@@ -71,15 +69,11 @@ class ElephantWrenchBaseTestCase extends TestCase
     protected function assertArraysSimilar(array $expected, array $actual)
     {
         $this->assertCount(count($expected), $actual);
-        foreach ($expected as $expected_key => $expected_value)
-        {
+        foreach ($expected as $expected_key => $expected_value) {
             $this->assertArrayHasKey($expected_key, $actual);
-            if (is_array($actual[$expected_key]))
-            {
+            if (is_array($actual[$expected_key])) {
                 $this->assertArraysSimilar($expected_value, $actual[$expected_key]);
-            }
-            else
-            {
+            } else {
                 $this->assertEquals($expected_value, $actual[$expected_key]);
             }
         }
@@ -98,7 +92,7 @@ class ElephantWrenchBaseTestCase extends TestCase
     {
         $reflection_class = new ReflectionObject($object);
         $property = $reflection_class->getProperty($property_name);
-        $property->setAccessible(True);
+        $property->setAccessible(true);
         return $property->getValue($object);
     }
 
@@ -124,16 +118,14 @@ class ElephantWrenchBaseTestCase extends TestCase
      */
     final protected static function restoreStaticProperties($class)
     {
-        if (!isset(self::$saved_static_properties))
-        {
+        if (!isset(self::$saved_static_properties)) {
             throw new Exception('Trying to restore a class that has not been saved!');
         }
 
         $reflection_class = new ReflectionClass($class);
-        foreach (self::$saved_static_properties[$class] as $property_name => $property_value)
-        {
+        foreach (self::$saved_static_properties[$class] as $property_name => $property_value) {
             $property = $reflection_class->getProperty($property_name);
-            $property->setAccessible(True);
+            $property->setAccessible(true);
             $property->setValue($property_value);
         }
     }
@@ -146,6 +138,6 @@ class ElephantWrenchBaseTestCase extends TestCase
      */
     public function testPhpunitLoads()
     {
-        $this->assertTrue(True);
+        $this->assertTrue(true);
     }
 }

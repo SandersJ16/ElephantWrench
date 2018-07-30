@@ -31,7 +31,8 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that a protected property added through a mixin can NOT be accessed directly on an instance of the mixable class
+     * Test that a protected property added through a mixin can
+     * NOT be accessed directly on an instance of the mixable class
      *
      * @expectedException \Error
      */
@@ -45,7 +46,8 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that a private property added through a mixin can NOT be accessed directly on an instance of the mixable class
+     * Test that a private property added through a mixin can
+     * NOT be accessed directly on an instance of the mixable class
      *
      * @expectedException \Error
      */
@@ -123,7 +125,8 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that a public method added through a mixed in class can call a protected method added through that same class
+     * Test that a public method added through a mixed in class
+     * can call a protected method added through that same class
      */
     public function testProtectedFunctionCanBeCalledFromInsideAnotherFunction()
     {
@@ -194,7 +197,6 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
         $mixable_class->publicMethodThatSetsPrivateProperty($new_private_property_value);
 
         $this->assertEquals($new_private_property_value, $mixable_class->publicMethodReturnPrivateProperty());
-
     }
 
     /**
@@ -245,7 +247,10 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
 
         $mixable_class_1->publicMethodThatSetsProtectedProperty('new protected mixin property value');
 
-        $this->assertNotEquals($mixable_class_2->publicMethodReturnProtectedProperty(), $mixable_class_1->publicMethodReturnProtectedProperty());
+        $this->assertNotEquals(
+            $mixable_class_2->publicMethodReturnProtectedProperty(),
+            $mixable_class_1->publicMethodReturnProtectedProperty()
+        );
     }
 
     /**
@@ -260,7 +265,10 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
 
         $mixable_class_1->publicMethodThatSetsPrivateProperty('new private mixin property value');
 
-        $this->assertNotEquals($mixable_class_2->publicMethodReturnPrivateProperty(), $mixable_class_1->publicMethodReturnPrivateProperty());
+        $this->assertNotEquals(
+            $mixable_class_2->publicMethodReturnPrivateProperty(),
+            $mixable_class_1->publicMethodReturnPrivateProperty()
+        );
     }
 
     /**
@@ -304,6 +312,4 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
 
         $mixable_class->protectedNonMixedMethod();
     }
-
-
 }

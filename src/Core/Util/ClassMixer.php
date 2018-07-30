@@ -20,7 +20,9 @@ final class ClassMixer
     /**
      * This is a Static Class so don't allow instances
      */
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /**
      * Given reflection function return a string that can be evaled to give you a closure equivalent to the function
@@ -35,8 +37,7 @@ final class ClassMixer
         $closure_definition .= implode(', ', self::getReflectionFunctionParametersAsStrings($reflection_function));
         $closure_definition .= ')';
 
-        if ($reflection_function->hasReturnType())
-        {
+        if ($reflection_function->hasReturnType()) {
             $closure_definition .= ' : ' . $reflection_function->getReturnType();
         }
 
@@ -44,19 +45,17 @@ final class ClassMixer
 
         $function_definition = '';
         $lines = file($reflection_function->getFileName());
-        for ($line_number = $reflection_function->getStartLine(); $line_number <= $reflection_function->getEndLine(); ++$line_number)
-        {
+        for ($line_number = $reflection_function->getStartLine(); $line_number <= $reflection_function->getEndLine(); ++$line_number) {
             $function_definition .= $lines[$line_number - 1];
         }
 
-        if (preg_match("/function\s*&?\s*{$reflection_function->name}\s*\(.+?{(?P<function_body>.*)}/s",
-                       $function_definition,
-                       $matches))
-        {
+        if (preg_match(
+            "/function\s*&?\s*{$reflection_function->name}\s*\(.+?{(?P<function_body>.*)}/s",
+            $function_definition,
+            $matches
+        )) {
             $closure_definition .= $matches['function_body'];
-        }
-        else
-        {
+        } else {
             throw new ClassMixerException("Could not parse function {$reflection_function->name} from file {$reflection_function->getFileName()}. Please make sure that multiple functions are not defined on the same line.");
         }
         $closure_definition .= '};';
@@ -74,34 +73,26 @@ final class ClassMixer
     private static function getReflectionFunctionParametersAsStrings(ReflectionFunctionAbstract $reflection_function) : array
     {
         $function_parameter_strings = array();
-        foreach ($reflection_function->getParameters() as $function_parameter)
-        {
+        foreach ($reflection_function->getParameters() as $function_parameter) {
             $parameter_string = '';
 
-            if ($function_parameter->hasType())
-            {
+            if ($function_parameter->hasType()) {
                 $parameter_string .= $function_parameter->getType() . ' ';
             }
 
-            if ($function_parameter->isPassedByReference())
-            {
+            if ($function_parameter->isPassedByReference()) {
                 $parameter_string .= '&';
             }
             $parameter_string .= '$' . $function_parameter->name;
 
 
-            if ($function_parameter->isDefaultValueAvailable())
-            {
+            if ($function_parameter->isDefaultValueAvailable()) {
                 $parameter_string .= ' = ';
-                if ($function_parameter->isDefaultValueConstant())
-                {
+                if ($function_parameter->isDefaultValueConstant()) {
                     $parameter_string .= $function_parameter->getDefaultValueConstantName();
+                } else {
+                    $parameter_string .= var_export($function_parameter->getDefaultValue(), true);
                 }
-                else
-                {
-                    $parameter_string .= var_export($function_parameter->getDefaultValue(), True);
-                }
-
             }
             $function_parameter_strings[] = $parameter_string;
         }
@@ -116,7 +107,8 @@ final class ClassMixer
      *
      * @return Closure
      */
-    public static function classMethodToRealClosure(string $class, string $method) : Closure {
+    public static function classMethodToRealClosure(string $class, string $method) : Closure
+    {
         $reflection_class = new ReflectionClass($class);
         $reflection_method = $reflection_class->getMethod($method);
         return self::reflectionFunctionToRealClosure($reflection_method);
@@ -129,10 +121,11 @@ final class ClassMixer
      *
      * @return Closure
      */
-    public static function reflectionFunctionToRealClosure(ReflectionFunctionAbstract $reflection_function) : Closure {
+    public static function reflectionFunctionToRealClosure(ReflectionFunctionAbstract $reflection_function) : Closure
+    {
         try {
             eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_function));
-        } catch(ParseError $e) {
+        } catch (ParseError $e) {
             //print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_function) . PHP_EOL;
             throw new ClassMixerException("Function {$reflection_function->getName()} was incorrectly parsed and failed to be built");
         }
