@@ -9,6 +9,7 @@ use ReflectionProperty;
 use ReflectionException;
 use BadMethodCallException;
 
+use ElephantWrench\Core\Exception\ClassMixerException;
 use ElephantWrench\Core\Util\{ClassMixer, ContextClosure};
 
 trait Mixable
@@ -16,9 +17,16 @@ trait Mixable
     /**
      * Used to keep track of all added mixed functions on this class and its children
      *
-     * @var array
+     * @var array Nested array: $mixable_methods[Class Name][Function Name] = ContextCallable
      */
     protected static $mixable_methods = array();
+
+    /**
+     * Used to keep track of all added static mixed function on this class and its children
+     *
+     * @var array Nested array: $static_mixable_methods[Class Name][Function Name] = ContextCallable
+     */
+    protected static $static_mixable_methods = array();
 
     /**
      * Used to keep track of all added mixed properties on this class and its children
@@ -48,6 +56,15 @@ trait Mixable
     {
         $callable_context = new ContextClosure($macro, $context);
         static::$mixable_methods[static::class][$name] = $callable_context;
+    }
+
+    public static function staticMix(string $name, callable $macro, $context = ContextClosure::PUBLIC)
+    {
+        // if (ClassMixer::hasInstanceContext($macro)) {
+        //     throw new ClassMixerException('Can not add this callable statically, callable uses $this in when not in object context');
+        // }
+        $callable_context = new ContextClosure($macro, $context);
+        static::$static_mixable_methods[static::class][$name] = $callable_context;
     }
 
     /**
@@ -211,6 +228,35 @@ trait Mixable
         $closure = Closure::bind($context_closure->getClosure(), $this, $mixed_class);
 
         return $closure(...$parameters);
+    }
+
+    public static function __callStatic(string $method, array $parameters)
+    {
+        $mixed_class = static::class;
+        while ($mixed_class !== false) {
+            if (isset(static::$static_mixable_methods[$mixed_class][$method])) {
+                break;
+            }
+            $mixed_class = get_parent_class($mixed_class);
+        }
+
+        //If we don't have a mixed in method than throw an Error
+        if (!$mixed_class) {
+            throw new Error(sprintf(
+                'Call to undefined method %s::%s()', static::class, $method
+            ));
+        }
+
+        //If we get to this part of the function than we are dealing with a mixed in property
+        $context_closure = static::$static_mixable_methods[$mixed_class][$method];
+
+        $closure = $context_closure->getClosure();
+
+
+
+        $result = $closure(...$parameters);
+
+        return $result;
     }
 
     /**

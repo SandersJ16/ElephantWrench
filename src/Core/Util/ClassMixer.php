@@ -31,8 +31,17 @@ final class ClassMixer
      *
      * @return string
      */
-    public static function dumpReflectionFunctionAsClosure(ReflectionFunctionAbstract $reflection_function) : string
+    private static function dumpCallableFunctionAsClosure($function) : string
     {
+        assert($function instanceof ReflectionFunctionAbstract
+               || is_callable($function));
+
+        if (is_callable($function)) {
+            $reflection_function = new ReflectionFunction($callable);
+        } else {
+            $reflection_function = $function;
+        }
+
         $closure_definition = 'function (';
         $closure_definition .= implode(', ', self::getReflectionFunctionParametersAsStrings($reflection_function));
         $closure_definition .= ')';
@@ -124,11 +133,42 @@ final class ClassMixer
     public static function reflectionFunctionToRealClosure(ReflectionFunctionAbstract $reflection_function) : Closure
     {
         try {
-            eval('$closure = ' . self::dumpReflectionFunctionAsClosure($reflection_function));
+            eval('$closure = ' . self::dumpCallableFunctionAsClosure($reflection_function));
         } catch (ParseError $e) {
-            //print PHP_EOL . PHP_EOL . self::dumpReflectionFunctionAsClosure($reflection_function) . PHP_EOL;
             throw new ClassMixerException("Function {$reflection_function->getName()} was incorrectly parsed and failed to be built");
         }
         return $closure;
+    }
+
+    /**
+     * Return if a function has instance context (uses $this)
+     *
+     * @param  ReflectionFunctionAbstract|callable  $function
+     * @return boolean
+     */
+    public static function hasInstanceContext($function) : bool {
+        $function_definition = self::dumpCallableFunctionAsClosure($function);
+
+//         $pattern = <<<REGEX
+// <<<([a-zA-Z][\w\d]*)$.+?^\1;      # Match All HereDocs
+// |<<<('[a-zA-Z][\w\d]*')$.+?^\2;   # Match All NowDocs
+// |'.+?(?<!\\)'                     # Match All Single Quote Strings
+// |".+?(?<!\\)"                     # Match All Doublc Quote Strings
+// |\/\*.+?\*\/                      # Match All Block Comments
+// |(\/\/|#).+?$                     # Match All SingleLine Comments
+// REGEX;
+
+        $removal_patterns = array(// '/<<<([a-zA-Z][\w\d]*)$.+?^\1/ms',      // Match All HereDocs
+                                  '/<<<\'([a-zA-Z][\w\d]*)\'$.+?^\1;/ms', // Match All NowDocs
+                                  '/\'.+?(?<!\\\\)\'/s',                 // Match All Single Quote Strings
+                                 // '/".+?(?<!\\\\)"/ms',                   // Match All Double Quote Strings
+                                  '/\/\*.+?\*\//s',                      // Match All Block Comments
+                                  '/(\/\/|#).+?$/m');                    // Match All SingleLine Comments
+
+        //print PHP_EOL . $function_definition . PHP_EOL;
+        $cleaned_function_definition = preg_replace($removal_patterns, '', $function_definition);
+        //print PHP_EOL . $cleaned_function_definition . PHP_EOL;
+        //if (preg_match('/(\/\*.*\$this[^\w].*\*\/)|(^[^\n]*\$this[^\w][^\n]*$)/ms', $cleaned_function_definition)) {
+        return (boolean) preg_match('/(?<!\\\\)\$this[^\w\d]/s', $cleaned_function_definition);
     }
 }

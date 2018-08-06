@@ -5,6 +5,7 @@ namespace ElephantWrench\Test;
 use StdClass;
 use TypeError;
 use ArgumentCountError;
+use ReflectionClass;
 
 use ElephantWrench\Core\Util\ClassMixer;
 use ElephantWrench\Test\Helpers\ClassMixerTestClass;
@@ -103,5 +104,64 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
             $this->fail('Closure of ClassMixerTestClass::methodWithStringReturnTypeThatReturnsItsFirstParameter allowed return type of non string');
         } catch (TypeError $e) {
         }
+    }
+
+    /**
+     * Test function ClassMixer::hasInstanceContet correctly returns if a function is using instance context (the $this variable)
+     *
+     * @dataProvider  dataProviderClassMixerTestClassesThatHaveInstanceContext
+     *
+     * @param  bool   $has_instance_context          If the method does have instance context (expected return value of ClassMixer::hasInstanceContet)
+     * @param  string $class_mixer_test_class_method Name of a method on ClassMixerTestClass to check hasInstanceContext
+     */
+    public function testHasInstanceContext(bool $has_instance_context, string $class_mixer_test_class_method)
+    {
+        $reflection_class = new ReflectionClass(ClassMixerTestClass::class);
+        $reflection_method = $reflection_class->getMethod($class_mixer_test_class_method);
+        $this->assertSame($has_instance_context, ClassMixer::hasInstanceContext($reflection_method));
+    }
+
+    /**
+     * Data Provider for testHasInstanceContext. Returns array of all methods on
+     * ClassMixerTestClass to check instance context on and the expected results
+     *
+     * @return array
+     */
+    public function dataProviderClassMixerTestClassesThatHaveInstanceContext() : array
+    {
+        return array('$this calling a method' =>
+                        array(true, 'methodThatUsesNonStaticFunctionCall'),
+                     '$this passed to a function inside of a function' =>
+                        array(true, 'methodThatPassesCurrentInstanceToAFunction'),
+                     '$this as the last thing on a line' =>
+                        array(true, 'methodWithThisAtEndOfALine'),
+                     '$this in HereDoc' =>
+                        array(true, 'methodWithThisInHereDocs'),
+                     '$this in HereDoc (complex)' =>
+                        array(true, 'methodWithThisInHereDocsWithBracketEscape'),
+                     '$this in HereDoc with function call (complex)' =>
+                        array(true, 'methodWithThisInHereDocsWithBracketEscapeAndFunctionCall'),
+                     '$this in double quotes' =>
+                        array(true, 'methodWithThisInDoubleQuotes'),
+                     '$this in double quotes (complex)' =>
+                        array(true, 'methodWithThisInDoubleQuotesWithBracketEscape'),
+                     '$this in double quotes with function call (complex)' =>
+                        array(true, 'methodWithThisInDoubleQuotesWithBracketEscapeAndFunctionCall'),
+                     '$this in double quotes on multiple lines' =>
+                        array(true, 'methodWithThisInDoubleQuotesBrokenOntoMultipleLines'),
+                     '$this in double quotes on multiple lines(complex)' =>
+                        array(true, 'methodWithThisInDoubleQuotesWithBracketEscapeBrokenOntoMultipleLines'),
+                     '$this in double quotes with function call on multiple lines(complex)' =>
+                        array(true, 'methodWithThisInDoubleQuotesWithBracketEscapeAndFunctionCallBrokenOntoMultipleLines'),
+                     '$this commented out using // and #' =>
+                        array(false, 'methodThatHasThisInSingleLineComments'),
+                    '$this commented out using block comments' =>
+                        array(false, 'methodThatHasThisInBlockComments'),
+                    '$this commented out using NowBlock' =>
+                        array(false, 'methodThatHasThisInNowDoc'),
+                    '$this with escaped dollar sign in double quotes' =>
+                        array(false, 'methodWithEscapedDollarSignThisInDoubleQuotes'),
+                    '$this with escaped dollar sign in HereDoc' =>
+                        array(false, 'methodWithEscapedDollarSignThisInHereDoc'));
     }
 }

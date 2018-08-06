@@ -3,6 +3,7 @@
 namespace ElephantWrench\Test;
 
 use Error;
+
 use ElephantWrench\Test\Helpers\{MixableTestClass, MixableTestSubClass};
 
 /**
