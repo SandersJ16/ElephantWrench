@@ -24,9 +24,9 @@ trait Mixable
     /**
      * Used to keep track of all added static mixed function on this class and its children
      *
-     * @var array Nested array: $static_mixable_methods[Class Name][Function Name] = ContextCallable
+     * @var array Nested array: $mixable_static_methods[Class Name][Function Name] = ContextCallable
      */
-    protected static $static_mixable_methods = array();
+    protected static $mixable_static_methods = array();
 
     /**
      * Used to keep track of all added mixed properties on this class and its children
@@ -60,11 +60,8 @@ trait Mixable
 
     public static function staticMix(string $name, callable $macro, $context = ContextClosure::PUBLIC)
     {
-        // if (ClassMixer::hasInstanceContext($macro)) {
-        //     throw new ClassMixerException('Can not add this callable statically, callable uses $this in when not in object context');
-        // }
-        $callable_context = new ContextClosure($macro, $context);
-        static::$static_mixable_methods[static::class][$name] = $callable_context;
+        $callable_context = new ContextClosure($macro, $context, true);
+        static::$mixable_static_methods[static::class][$name] = $callable_context;
     }
 
     /**
@@ -142,14 +139,16 @@ trait Mixable
      * Returns which class a method was added to or false if it hasn't been added to this class
      *
      * @param  string       $method
+     * @param  bool         $static
      *
      * @return string|false
      */
-    public static function getMixedMethodClass(string $method)
+    public static function getMixedMethodClass(string $method, bool $static = false)
     {
+        $methods = $static ? static::$mixable_static_methods : static::$mixable_methods;
         $class = static::class;
         while ($class !== false) {
-            if (isset(static::$mixable_methods[$class][$method])) {
+            if (isset($methods[$class][$method])) {
                 break;
             }
             $class = get_parent_class($class);
@@ -182,7 +181,6 @@ trait Mixable
      */
     public function __call(string $method, array $parameters)
     {
-
         //If the method exists we throw an Error as this means someone is trying to access
         //a protected or private method not added through a mixin in the wrong context
         if (method_exists($this, $method)) {
@@ -202,7 +200,7 @@ trait Mixable
             ));
         }
 
-        //If we get to this part of the function than we are dealing with a mixed in property
+        //If we get to this part of the function than we are dealing with a mixed in function
         $context_closure = static::$mixable_methods[$mixed_class][$method];
 
         //If the method is not public than check that we are calling from an appropriate
@@ -230,15 +228,30 @@ trait Mixable
         return $closure(...$parameters);
     }
 
+    /**
+     * Dynamically handle static calls to the class, if a function has been
+     * registered to this class as a static function then this will call it.
+     *
+     * @param  string  $method
+     * @param  array   $parameters
+     *
+     * @return mixed
+     *
+     * @throws \Error
+     */
     public static function __callStatic(string $method, array $parameters)
     {
-        $mixed_class = static::class;
-        while ($mixed_class !== false) {
-            if (isset(static::$static_mixable_methods[$mixed_class][$method])) {
-                break;
-            }
-            $mixed_class = get_parent_class($mixed_class);
+        //If the method exists we throw an Error as this means someone is trying to access
+        //a protected or private method not added through a mixin in the wrong context
+        if (method_exists(static::class, $method)) {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $context_class = $backtrace[1]['class'] ?? '';
+            throw new Error(sprintf(
+                "Cannot access non-public method %s::%s() from context '%s'", static::class, $method, $context_class
+            ));
         }
+
+        $mixed_class = static::getMixedMethodClass($method, true);
 
         //If we don't have a mixed in method than throw an Error
         if (!$mixed_class) {
@@ -247,20 +260,20 @@ trait Mixable
             ));
         }
 
-        //If we get to this part of the function than we are dealing with a mixed in property
-        $context_closure = static::$static_mixable_methods[$mixed_class][$method];
+        //If we get to this part of the function than we are dealing with a mixed in static function
+        $context_closure = static::$mixable_static_methods[$mixed_class][$method];
 
-        $closure = $context_closure->getClosure();
+        $reflection_class = new ReflectionClass(static::class);
+        $fake_instance = $reflection_class->newInstanceWithoutConstructor();
 
+        $closure = Closure::bind($context_closure->getClosure(), $fake_instance, $mixed_class);
 
-
-        $result = $closure(...$parameters);
-
-        return $result;
+        return $closure(...$parameters);
     }
 
     /**
-     * Dynamically hande calls to properties on the class
+     * Dynamically hande calls to properties on the class that are not set,
+     * used to handle properties of mixed in classes
      *
      * @param  string $name
      *

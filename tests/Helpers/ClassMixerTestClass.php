@@ -161,6 +161,11 @@ TEST;
 DOC;
     }
 
+    public function methodWithVariableStartingWithThis()
+    {
+        $this_var = 'this';
+    }
+
     /**
      * Used to allow $this in  a string substitution
      *

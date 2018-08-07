@@ -30,4 +30,19 @@ class MixableTestClass
     {
         return 'private NonMixed Method';
     }
+
+    public static function publicNonMixedStaticMethod()
+    {
+        return 'public NonMixed Static Method';
+    }
+
+    protected static function protectedNonMixedStaticMethod()
+    {
+        return 'protected NonMixed Static Method';
+    }
+
+    private static function privateNonMixedStaticMethod()
+    {
+        return 'private NonMixed Static Method';
+    }
 }

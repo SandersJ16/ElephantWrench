@@ -19,4 +19,14 @@ class MixableTestSubClass extends MixableTestClass
     {
         return 'child ' . parent::protectedNonMixedMethod();
     }
+
+    public static function publicNonMixedStaticMethod()
+    {
+        return 'child ' . parent::publicNonMixedStaticMethod();
+    }
+
+    protected static function protectedNonMixedStaticMethod()
+    {
+        return 'child ' . parent::protectedNonMixedStaticMethod();
+    }
 }

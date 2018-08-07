@@ -107,21 +107,6 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test function ClassMixer::hasInstanceContet correctly returns if a function is using instance context (the $this variable)
-     *
-     * @dataProvider  dataProviderClassMixerTestClassesThatHaveInstanceContext
-     *
-     * @param  bool   $has_instance_context          If the method does have instance context (expected return value of ClassMixer::hasInstanceContet)
-     * @param  string $class_mixer_test_class_method Name of a method on ClassMixerTestClass to check hasInstanceContext
-     */
-    public function testHasInstanceContext(bool $has_instance_context, string $class_mixer_test_class_method)
-    {
-        $reflection_class = new ReflectionClass(ClassMixerTestClass::class);
-        $reflection_method = $reflection_class->getMethod($class_mixer_test_class_method);
-        $this->assertSame($has_instance_context, ClassMixer::hasInstanceContext($reflection_method));
-    }
-
-    /**
      * Data Provider for testHasInstanceContext. Returns array of all methods on
      * ClassMixerTestClass to check instance context on and the expected results
      *
@@ -155,13 +140,30 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
                         array(true, 'methodWithThisInDoubleQuotesWithBracketEscapeAndFunctionCallBrokenOntoMultipleLines'),
                      '$this commented out using // and #' =>
                         array(false, 'methodThatHasThisInSingleLineComments'),
-                    '$this commented out using block comments' =>
+                     '$this commented out using block comments' =>
                         array(false, 'methodThatHasThisInBlockComments'),
-                    '$this commented out using NowBlock' =>
+                     '$this commented out using NowBlock' =>
                         array(false, 'methodThatHasThisInNowDoc'),
-                    '$this with escaped dollar sign in double quotes' =>
+                     '$this with escaped dollar sign in double quotes' =>
                         array(false, 'methodWithEscapedDollarSignThisInDoubleQuotes'),
-                    '$this with escaped dollar sign in HereDoc' =>
-                        array(false, 'methodWithEscapedDollarSignThisInHereDoc'));
+                     '$this with escaped dollar sign in HereDoc' =>
+                        array(false, 'methodWithEscapedDollarSignThisInHereDoc'),
+                     'Variable name starting with $this' =>
+                        array(false, 'methodWithVariableStartingWithThis'));
+    }
+
+    /**
+     * Test function ClassMixer::hasInstanceContet correctly returns if a function is using instance context (the $this variable)
+     *
+     * @dataProvider  dataProviderClassMixerTestClassesThatHaveInstanceContext
+     *
+     * @param  bool   $has_instance_context          If the method does have instance context (expected return value of ClassMixer::hasInstanceContet)
+     * @param  string $class_mixer_test_class_method Name of a method on ClassMixerTestClass to check hasInstanceContext
+     */
+    public function testHasInstanceContext(bool $has_instance_context, string $class_mixer_test_class_method)
+    {
+        $reflection_class = new ReflectionClass(ClassMixerTestClass::class);
+        $reflection_method = $reflection_class->getMethod($class_mixer_test_class_method);
+        $this->assertSame($has_instance_context, ClassMixer::hasInstanceContext($reflection_method));
     }
 }

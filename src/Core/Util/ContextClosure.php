@@ -5,6 +5,7 @@ namespace ElephantWrench\Core\Util;
 use Closure;
 
 use ElephantWrench\Core\Exception\ContextCallableException;
+use ElephantWrench\Core\Util\ClassMixer;
 
 /**
  * This class is to be used as a wrapper around a closure,
@@ -21,18 +22,41 @@ class ContextClosure
 
     protected $closure;
     protected $context;
+    protected $static;
 
     /**
      * Create a new context closure
      *
-     * @param Closure $closure The actual closure object this is a wrapper around
-     * @param int     $context The context of this closure, can be Public, Protected or Private;
-     *                         needs to be one of the corresponding constants of this class
+     * @param  Closure $closure         The actual closure object this is a wrapper around
+     * @param  int     $context         The context of this closure, can be Public, Protected or Private,
+     *                                  needs to be one of the corresponding constants of this class
+     * @param  bool    $static          Whether this closure should be handled as if it were static
+     *
+     * @throws ContextCallableException Thrown when trying to create a static ContextClosure with a closure
+     *                                  that has instance context (uses $this variable)
      */
-    public function __construct(Closure $closure, $context = self::PUBLIC)
+    public function __construct(Closure $closure, $context = self::PUBLIC, bool $static = false)
     {
+        $this->static = $static;
         $this->closure = $closure;
         $this->setContext($context);
+
+        if ($this->isStatic() && ClassMixer::hasInstanceContext($closure)) {
+            throw new ContextCallableException('Can not create a static contextCallable using $this when not in object context');
+        }
+    }
+
+    /**
+     * Make this class directly invokable, it will just call the related closure
+     *
+     * @param  mixed $parameters Parameters to pass to the closure
+     *
+     * @return mixed             Return value of the closure
+     */
+    public function __invoke(...$parameters)
+    {
+        $closure = $this->getClosure();
+        return $closure(...$parameters);
     }
 
     /**
@@ -50,7 +74,7 @@ class ContextClosure
      *
      * @return int
      */
-    public function getContext()
+    public function getContext() : int
     {
         return $this->context;
     }
@@ -97,5 +121,15 @@ class ContextClosure
     public function isPrivate() : bool
     {
         return $this->context === self::PRIVATE;
+    }
+
+    /**
+     * Returns if the context of this closure is static
+     *
+     * @return boolean
+     */
+    public function isStatic() : bool
+    {
+        return $this->static;
     }
 }

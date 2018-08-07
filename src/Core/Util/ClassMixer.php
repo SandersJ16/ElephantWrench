@@ -5,6 +5,7 @@ namespace ElephantWrench\Core\Util;
 use Closure;
 use ParseError;
 use ReflectionClass;
+use ReflectionFunction;
 use ReflectionFunctionAbstract;
 
 use ElephantWrench\Core\Exception\ClassMixerException;
@@ -36,10 +37,10 @@ final class ClassMixer
         assert($function instanceof ReflectionFunctionAbstract
                || is_callable($function));
 
-        if (is_callable($function)) {
-            $reflection_function = new ReflectionFunction($callable);
-        } else {
+        if ($function instanceof ReflectionFunctionAbstract) {
             $reflection_function = $function;
+        } else {
+            $reflection_function = new ReflectionFunction($function);
         }
 
         $closure_definition = 'function (';
@@ -59,13 +60,15 @@ final class ClassMixer
         }
 
         if (preg_match(
-            "/function\s*&?\s*{$reflection_function->name}\s*\(.+?{(?P<function_body>.*)}/s",
+            "/function\s*&?\s*(?:{$reflection_function->name}\s*)?\(.+?{(?P<function_body>.*)}/s",
             $function_definition,
             $matches
         )) {
             $closure_definition .= $matches['function_body'];
         } else {
-            throw new ClassMixerException("Could not parse function {$reflection_function->name} from file {$reflection_function->getFileName()}. Please make sure that multiple functions are not defined on the same line.");
+            print $function_definition;
+            $file_name = $reflection_function->getFileName();
+            throw new ClassMixerException("Could not parse function {$reflection_function->name} from file {$file_name}. Please make sure that multiple functions are not defined on the same line.");
         }
         $closure_definition .= '};';
 
@@ -149,26 +152,15 @@ final class ClassMixer
     public static function hasInstanceContext($function) : bool {
         $function_definition = self::dumpCallableFunctionAsClosure($function);
 
-//         $pattern = <<<REGEX
-// <<<([a-zA-Z][\w\d]*)$.+?^\1;      # Match All HereDocs
-// |<<<('[a-zA-Z][\w\d]*')$.+?^\2;   # Match All NowDocs
-// |'.+?(?<!\\)'                     # Match All Single Quote Strings
-// |".+?(?<!\\)"                     # Match All Doublc Quote Strings
-// |\/\*.+?\*\/                      # Match All Block Comments
-// |(\/\/|#).+?$                     # Match All SingleLine Comments
-// REGEX;
+        $removal_patterns = array('/<<<\'([a-zA-Z][\w\d]*)\'$.+?^\1;/ms', // Match All NowDocs
+                                  '/\'.+?(?<!\\\\)\'/ms',                 // Match All Single Quoted Strings
+                                  '/\/\*.+?\*\//ms',                      // Match All Block Comments
+                                  '/(\/\/|#).+?$/ms');                    // Match All Single Line Comments
 
-        $removal_patterns = array(// '/<<<([a-zA-Z][\w\d]*)$.+?^\1/ms',      // Match All HereDocs
-                                  '/<<<\'([a-zA-Z][\w\d]*)\'$.+?^\1;/ms', // Match All NowDocs
-                                  '/\'.+?(?<!\\\\)\'/s',                 // Match All Single Quote Strings
-                                 // '/".+?(?<!\\\\)"/ms',                   // Match All Double Quote Strings
-                                  '/\/\*.+?\*\//s',                      // Match All Block Comments
-                                  '/(\/\/|#).+?$/m');                    // Match All SingleLine Comments
-
-        //print PHP_EOL . $function_definition . PHP_EOL;
+        // Remove patterns that are allowed to contain $this in a static function
         $cleaned_function_definition = preg_replace($removal_patterns, '', $function_definition);
-        //print PHP_EOL . $cleaned_function_definition . PHP_EOL;
-        //if (preg_match('/(\/\*.*\$this[^\w].*\*\/)|(^[^\n]*\$this[^\w][^\n]*$)/ms', $cleaned_function_definition)) {
-        return (boolean) preg_match('/(?<!\\\\)\$this[^\w\d]/s', $cleaned_function_definition);
+
+        //Match $this where it is not proceeded by a backslash and it is followed by a non identifier symbol
+        return (boolean) preg_match('/(?<!\\\\)\$this[^\w\d]/', $cleaned_function_definition);
     }
 }
