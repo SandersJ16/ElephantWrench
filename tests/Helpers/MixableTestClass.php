@@ -16,7 +16,18 @@ class MixableTestClass
     protected static $static_protected_property = 'static protected';
     private static $static_private_property = 'static private';
 
+    public function publicNonMixedMethod()
+    {
+        return 'public NonMixed Method';
+    }
+
     protected function protectedNonMixedMethod()
     {
+        return 'protected NonMixed Method';
+    }
+
+    private function privateNonMixedMethod()
+    {
+        return 'private NonMixed Method';
     }
 }

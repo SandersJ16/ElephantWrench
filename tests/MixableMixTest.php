@@ -317,19 +317,123 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
 
     /**
      * Test that an added function using a private static property
-     * defined on the Mixable and overriden on a Subclass of the Mixable
-     * called using `self` is callable when added to the subclass of the mixable
-     * and uses the subclass's property not the parent's
+     * defined on the Mixable and called using `self` is not accesible
+     * when added to the subclass of the mixable
+     *
+     * @expectedException Error
      */
     public function testAddingFunctionThatUsesExistingMixableClassStaticPrivatePropertyToMixableSubclassThatOverridesParentsProperty()
     {
+        $this->expectException(Error::class);
+
         $mixable_subclass = new MixableTestSubClass();
         MixableTestSubClass::mix('getStaticPrivateProperty', function () {
             return self::$static_private_property;
         });
-        $this->assertEquals(
-            $this->getNonPublicProperty($mixable_subclass, 'static_private_property'),
-            $mixable_subclass->getStaticPrivateProperty()
-        );
+        $mixable_subclass->getStaticPrivateProperty();
+    }
+
+    /**
+     * Test that an added function can use a public non-static method
+     * defined on the Mixable using `$this`.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassPublicMethod()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('callPublicMethod', function () {
+            return $this->publicNonMixedMethod();
+        });
+        $this->assertEquals($mixable_class->publicNonMixedMethod(), $mixable_class->callPublicMethod());
+    }
+
+    /**
+     * Test that an added function can use a protected non-static method
+     * defined on the Mixable using `$this`.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassProtectedMethod()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('callProtectedMethod', function () {
+            return $this->protectedNonMixedMethod();
+        });
+        $this->assertEquals($this->callNonPublicMethod($mixable_class, 'protectedNonMixedMethod'), $mixable_class->callProtectedMethod());
+    }
+
+    /**
+     * Test that an added function can use a private non-static method
+     * defined on the Mixable using `$this`.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassPrivateMethod()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('callPrivateMethod', function () {
+            return $this->privateNonMixedMethod();
+        });
+        $this->assertEquals($this->callNonPublicMethod($mixable_class, 'privateNonMixedMethod'), $mixable_class->callPrivateMethod());
+    }
+
+    /**
+     * Test that an added function can use a public non-static method
+     * defined on the Mixable using `$this` from a subclass of the mixable.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassPublicMethodFromSubclass()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_subclass = new MixableTestSubClass();
+        $mixable_class::mix('callPublicMethod', function () {
+            return $this->publicNonMixedMethod();
+        });
+        $this->assertEquals($mixable_subclass->publicNonMixedMethod(), $mixable_subclass->callPublicMethod());
+    }
+
+    /**
+     * Test that an added function can use a protected non-static method
+     * defined on the Mixable using `$this` from a subclass of the mixable.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassProtectedMethodFromSubclass()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_subclass = new MixableTestSubClass();
+        $mixable_class::mix('callProtectedMethod', function () {
+            return $this->protectedNonMixedMethod();
+        });
+        $this->assertEquals($this->callNonPublicMethod($mixable_subclass, 'protectedNonMixedMethod'), $mixable_subclass->callProtectedMethod());
+    }
+
+    /**
+     * Test that an added function can use a private non-static method
+     * defined on the Mixable using `$this` from a subclass of the mixable.
+     */
+    public function testAddingFunctionThatUsesExistingMixableClassPrivateMethodFromSubclass()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_subclass = new MixableTestSubClass();
+        $mixable_class::mix('callPrivateMethod', function () {
+            return $this->privateNonMixedMethod();
+        });
+
+        //Shouldn't thow an exception since the function was registered to a class that has access to this private method
+        $this->assertEquals($this->callNonPublicMethod($mixable_class, 'privateNonMixedMethod'), $mixable_subclass->callPrivateMethod());
+    }
+
+    /**
+     * Test that a function added to the subclass of a Mixable can
+     * NOT use a private non-static method defined on the Mixable
+     *
+     * @expectedException Error
+     */
+    public function testAddingFunctionThatUsesParentExistingMixableClassPrivateMethodFromSubclass()
+    {
+        $this->expectException(Error::class);
+
+        $mixable_subclass = new MixableTestSubClass();
+        $mixable_subclass::mix('callPrivateMethod', function () {
+            return $this->privateNonMixedMethod();
+        });
+
+        //Should throw an exception for undefined method `privateNonMixedMethod`
+        //since callPrivateMethod was added to `MixableTestSubClass` which can not access
+        //the private methods of its parent `MixableTestClass`
+        $mixable_subclass->callPrivateMethod();
     }
 }

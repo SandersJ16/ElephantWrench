@@ -81,12 +81,12 @@ class ElephantWrenchBaseTestCase extends TestCase
 
     /**
      * Return the value of a non public property for an object,
-     * useful for testing. Does work with public functions.
+     * useful for testing. Does work with public properties.
      *
      * @param  object $object        Object that we want the value from
      * @param  string $property_name Name of the property that we want
      *
-     * @return mixed
+     * @return mixed                 Value of the property
      */
     protected function getNonPublicProperty(object $object, string $property_name)
     {
@@ -94,6 +94,24 @@ class ElephantWrenchBaseTestCase extends TestCase
         $property = $reflection_class->getProperty($property_name);
         $property->setAccessible(true);
         return $property->getValue($object);
+    }
+
+    /**
+     * Call a non public method on an object,
+     * useful for testing. Will work with public methods.
+     *
+     * @param  object $object      Object that we want to call the function with
+     * @param  string $method_name Name of the function we wish to call
+     * @param  array  $args        Arguments to pass to the function
+     *
+     * @return mixed               Return value of the function call
+     */
+    protected function callNonPublicMethod(object $object, string $method_name, array $args = [])
+    {
+        $reflection_class = new ReflectionObject($object);
+        $method = $reflection_class->getMethod($method_name);
+        $method->setAccessible(true);
+        return $method->invoke($object, ...$args);
     }
 
     /**
