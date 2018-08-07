@@ -312,4 +312,18 @@ class MixableMixinTest extends ElephantWrenchBaseTestCase
 
         $mixable_class->protectedNonMixedMethod();
     }
+
+    /**
+     * Test that our __call function doesn't allow the calling of private methods on the class
+     *
+     * @expectedException \Error
+     */
+    public function testCallFunctionDoesntAllowSettingOfNonMixedPrivateProperties()
+    {
+        $this->expectException(Error::class);
+
+        $mixable_class = new MixableTestClass();
+
+        $mixable_class->privateNonMixedMethod();
+    }
 }
