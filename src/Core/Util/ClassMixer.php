@@ -149,7 +149,8 @@ final class ClassMixer
      * @param  ReflectionFunctionAbstract|callable  $function
      * @return boolean
      */
-    public static function hasInstanceContext($function) : bool {
+    public static function hasInstanceContext($function) : bool
+    {
         $function_definition = self::dumpCallableFunctionAsClosure($function);
 
         $removal_patterns = array('/<<<\'([a-zA-Z][\w\d]*)\'$.+?^\1;/ms', // Match All NowDocs

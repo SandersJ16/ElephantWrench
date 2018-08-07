@@ -8,6 +8,7 @@
     <exclude-pattern>/tests/Helpers/ClassMixerTestClass.php</exclude-pattern>
     <rule ref="PSR2">
         <exclude name="PSR2.Namespaces.UseDeclaration"/>
+        <exclude name="Generic.Files.LineLength"/>
     </rule>
     <rule ref="PSR2.Methods.FunctionCallSignature">
         <properties>
