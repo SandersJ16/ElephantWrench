@@ -4,6 +4,10 @@ namespace ElephantWrench\Test\Helpers;
 
 class ClassMixerTestClass
 {
+    function returnHellowWorldWithNoDefinedScope() {
+        return 'hello world';
+    }
+
     public function returnHelloWorldWithOpenBracketOnNewLine()
     {
         return 'hello world';
@@ -36,6 +40,7 @@ class ClassMixerTestClass
     {
         return $value;
     }
+
 
     /*
      ****************************************************************************************

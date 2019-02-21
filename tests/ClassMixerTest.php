@@ -26,7 +26,8 @@ class ClassMixerTest extends ElephantWrenchBaseTestCase
                      ['returnHelloWorldWithOpenBracketOnSameLine'],
                      ['returnHelloWorldDefinedOnOneLine'],
                      ['returnHelloWorldDefinedOnMultiLinesButStartsOnLineOne'],
-                     ['returnHelloWorldWithExtraLinesBetweenMethodBodyAndDefinition']);
+                     ['returnHelloWorldWithExtraLinesBetweenMethodBodyAndDefinition'],
+                     ['returnHellowWorldWithNoDefinedScope']);
     }
 
     /**
