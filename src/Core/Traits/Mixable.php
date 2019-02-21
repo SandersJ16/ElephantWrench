@@ -36,6 +36,13 @@ trait Mixable
     protected static $mixable_properties = array();
 
     /**
+     * Used to keep track of all added combinator functions
+     *
+     * @var array
+     */
+    protected static $combinator_methods = array();
+
+    /**
      * Used to keep track of all mixed properties on a specific instance of this class, this array
      * will only get populated with values that have been changed from their default value, otherwise
      * their default values are used (these are stored on the properties in $mixable_properties)
@@ -43,6 +50,7 @@ trait Mixable
      * @var array
      */
     protected $mixable_instance_properties = array();
+
 
     /**
      * Register a new function to this class
@@ -168,6 +176,36 @@ trait Mixable
         return (bool) static::getMixedMethodClass($method);
     }
 
+
+
+
+
+    public function addCombinator(string $name, callable $macro, $context = ContextClosure::PUBLIC)
+    {
+        $callable_context = new ContextClosure($macro, $context);
+        static::$combinator_methods[static::class][$name] = $callable_context;
+    }
+
+    public static function getCombinatorClass(string $method)
+    {
+        //$combinators = $static ? static::$combinator_static_method : static::$combinator_methods;
+        $combinators = static::$combinator_methods;
+        $class = static::class;
+        while ($class !== false) {
+            if (isset($combinators[$class][$method])) {
+                break;
+            }
+            $class = get_parent_class($class);
+        }
+        return $class;
+    }
+
+
+
+
+
+
+
     /**
      * Dynamically handle calls to the class, if a function has been
      * registered to this class then this will call it.
@@ -191,17 +229,18 @@ trait Mixable
             ));
         }
 
-        $mixed_class = static::getMixedMethodClass($method);
-
-        //If we don't have a mixed in method than throw an Error
-        if (!$mixed_class) {
+        $combinator = false;
+        if ($mixed_class = static::getCombinatorClass($method)) {
+            $combinator = true;
+            $context_closure = static::$combinator_methods[$mixed_class][$method];
+        } elseif ($mixed_class = static::getMixedMethodClass($method)) {
+            $context_closure = static::$mixable_methods[$mixed_class][$method];
+        } else {
+            //If we don't have a mixed in method or combinator than throw an Error
             throw new Error(sprintf(
                 'Call to undefined method %s::%s()', static::class, $method
             ));
         }
-
-        //If we get to this part of the function than we are dealing with a mixed in function
-        $context_closure = static::$mixable_methods[$mixed_class][$method];
 
         //If the method is not public than check that we are calling from an appropriate
         //context for the visibility of the function, otherwise throw an Error
@@ -224,8 +263,11 @@ trait Mixable
         }
 
         $closure = Closure::bind($context_closure->getClosure(), $this, $mixed_class);
-
-        return $closure(...$parameters);
+        if ($combinator) {
+            return $closure(array(), array());
+        } else {
+            return $closure(...$parameters);
+        }
     }
 
     /**
