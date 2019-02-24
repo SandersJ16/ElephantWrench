@@ -6,8 +6,10 @@ use Error;
 use Closure;
 use ReflectionClass;
 use ReflectionProperty;
+use ReflectionFunction;
 use ReflectionException;
 use BadMethodCallException;
+use InvalidArgumentException;
 
 use ElephantWrench\Core\Exception\ClassMixerException;
 use ElephantWrench\Core\Util\{ClassMixer, ContextClosure};
@@ -180,10 +182,34 @@ trait Mixable
 
 
 
-    public function addCombinator(string $name, callable $macro, $context = ContextClosure::PUBLIC)
+
+
+
+
+
+
+
+
+
+
+
+
+    public static function addCombinator(string $name, callable $macro, $context = ContextClosure::PUBLIC)
     {
+        if (!self::isValidCombinatorCallable($macro)) {
+            throw new InvalidArgumentException(sprintf(
+                'Cannot register combinator to class "%s", the callable provided was not valid. All callables to be used as combinators must have excatly two parameters type hinted with either `array` or `Traversable`', static::class));
+        }
         $callable_context = new ContextClosure($macro, $context);
         static::$combinator_methods[static::class][$name] = $callable_context;
+    }
+
+    private static function isValidCombinatorCallable(callable $macro)
+    {
+        $valid = true;
+        $reflection_function = new ReflectionFunction($macro);
+        $parameters = $reflection_function->getParameters();
+        return count($parameters) == 2;
     }
 
     public static function getCombinatorClass(string $method)
