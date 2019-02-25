@@ -57,6 +57,8 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
                 array(function($a, $b, $c, $d) {}, false),
             'Combinator function with more than 2 arguments, where some but not all extra arguments have a default value' =>
                 array(function($a, $b, $c, $d = null) {}, false),
+            'Combinator function with more than 2 arguments, where all extra arguments have a default value' =>
+                array(function($a, $b, $c = null, $d = null) {}, true),
             );
     }
 

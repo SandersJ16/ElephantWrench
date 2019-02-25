@@ -196,20 +196,25 @@ trait Mixable
 
     public static function addCombinator(string $name, callable $macro, $context = ContextClosure::PUBLIC)
     {
-        if (!self::isValidCombinatorCallable($macro)) {
-            throw new InvalidArgumentException(sprintf(
-                'Cannot register combinator to class "%s", the callable provided was not valid. All callables to be used as combinators must have excatly two parameters type hinted with either `array` or `Traversable`', static::class));
-        }
+        self::validateCallableForCombinator($macro);
+
         $callable_context = new ContextClosure($macro, $context);
         static::$combinator_methods[static::class][$name] = $callable_context;
     }
 
-    private static function isValidCombinatorCallable(callable $macro)
+    private static function validateCallableForCombinator(callable $macro)
     {
-        $valid = true;
+        $base_error_message =  'Cannot register combinator to class "' . static::class . '", the callable provided was not valid. ';
         $reflection_function = new ReflectionFunction($macro);
         $parameters = $reflection_function->getParameters();
-        return count($parameters) == 2;
+        if (count($parameters) < 2) {
+            throw new InvalidArgumentException($base_error_message . ' The callable must accept at least two parameters.');
+        }
+        foreach (array_slice($parameters, 2) as $parameter) {
+            if (!$parameter->isDefaultValueAvailable()) {
+                throw new InvalidArgumentException($base_error_message . ' Any parameters besides the first two must have default values.');
+            }
+        }
     }
 
     public static function getCombinatorClass(string $method)
