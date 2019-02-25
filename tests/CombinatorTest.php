@@ -2,6 +2,7 @@
 
 namespace ElephantWrench\Test;
 
+use Traversable;
 use InvalidArgumentException;
 
 use ElephantWrench\Test\Helpers\MixableTestClass;
@@ -44,11 +45,19 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
             'Combinator function with both parameters type hinted as array' =>
                 array(function(array $a, array $b) {}, true),
             'Combinator function with neither parameters type hinted as Traversable' =>
-                array(function(Taversable $a, Traversable $b) {}, true),
+                array(function(Traversable $a, Traversable $b) {}, true),
             'Combinator function with first parameter type hinted as array and second parameter type hinted as Traversable' =>
                 array(function(array $a, Traversable $b) {}, true),
             'Combinator function with first parameter type hinted as Taversable and second parameter type hinted as array' =>
                 array(function(Traversable $a, array $b) {}, true),
+            'Combinator function with first parameter type hinted as something other than Traversable or array' =>
+                array(function(string $a, $b) {}, false),
+            'Combinator function with second parameter type hinted as something other than Traversable or array' =>
+                array(function($a, int $b) {}, false),
+            'Combinator function with first parameter type hinted as something other than Traversable or array and second parameter type hinted as Traversable' =>
+                array(function(double $a, Traversable $b) {}, false),
+            'Combinator function with second parameter type hinted as something other than Traversable or array and first parameter type hinted as array' =>
+                array(function(array $a, bool $b) {}, false),
             'Combinator function with no arguments' =>
                 array(function() {}, false),
             'Combinator function with 1 argument' =>

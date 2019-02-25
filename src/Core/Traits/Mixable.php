@@ -4,9 +4,11 @@ namespace ElephantWrench\Core\Traits;
 
 use Error;
 use Closure;
+use Traversable;
 use ReflectionClass;
 use ReflectionProperty;
 use ReflectionFunction;
+use ReflectionNamedType;
 use ReflectionException;
 use BadMethodCallException;
 use InvalidArgumentException;
@@ -204,11 +206,24 @@ trait Mixable
 
     private static function validateCallableForCombinator(callable $macro)
     {
-        $base_error_message =  'Cannot register combinator to class "' . static::class . '", the callable provided was not valid. ';
+        $base_error_message =  'Cannot register combinator to class "' . static::class . '", the callable provided was not valid.';
         $reflection_function = new ReflectionFunction($macro);
         $parameters = $reflection_function->getParameters();
         if (count($parameters) < 2) {
             throw new InvalidArgumentException($base_error_message . ' The callable must accept at least two parameters.');
+        }
+        foreach (array_slice($parameters, 0, 2) as $parameter) {
+            $parameter_type = $parameter->getType();
+            if ($parameter_type instanceof ReflectionNamedType
+                && !in_array($parameter_type->getName(), array('array', Traversable::class))) {
+                throw new InvalidArgumentException(sprintf(
+                    '%s The The First two parameters must either be not type hinted or type hinted with "array" or "%s".'
+                    . ' The parameter at position %s had type hinting of "%s"',
+                    $base_error_message,
+                    Traversable::class,
+                    $parameter->getPosition() + 1,
+                    $parameter_type->getName()));
+            }
         }
         foreach (array_slice($parameters, 2) as $parameter) {
             if (!$parameter->isDefaultValueAvailable()) {
@@ -219,7 +234,6 @@ trait Mixable
 
     public static function getCombinatorClass(string $method)
     {
-        //$combinators = $static ? static::$combinator_static_method : static::$combinator_methods;
         $combinators = static::$combinator_methods;
         $class = static::class;
         while ($class !== false) {
