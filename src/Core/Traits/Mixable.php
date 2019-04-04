@@ -215,7 +215,8 @@ trait Mixable
         foreach (array_slice($parameters, 0, 2) as $parameter) {
             $parameter_type = $parameter->getType();
             if ($parameter_type instanceof ReflectionNamedType
-                && !in_array($parameter_type->getName(), array('array', Traversable::class))) {
+                && !in_array($parameter_type->getName(), array('array', Traversable::class))
+                && !is_subclass_of($parameter_type->getName(), Traversable::class)) {
                 throw new InvalidArgumentException(sprintf(
                     '%s The The First two parameters must either be not type hinted or type hinted with "array" or "%s".'
                     . ' The parameter at position %s had type hinting of "%s"',

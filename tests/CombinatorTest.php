@@ -3,6 +3,7 @@
 namespace ElephantWrench\Test;
 
 use Traversable;
+use ArrayObject;
 use InvalidArgumentException;
 
 use ElephantWrench\Test\Helpers\MixableTestClass;
@@ -50,6 +51,8 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
                 array(function(array $a, Traversable $b) {}, true),
             'Combinator function with first parameter type hinted as Taversable and second parameter type hinted as array' =>
                 array(function(Traversable $a, array $b) {}, true),
+            'Combinator function with first parameter type hinted as a class that implements Traversable' =>
+                array(function(ArrayObject $a, $b) {}, true),
             'Combinator function with first parameter type hinted as something other than Traversable or array' =>
                 array(function(string $a, $b) {}, false),
             'Combinator function with second parameter type hinted as something other than Traversable or array' =>
@@ -74,11 +77,10 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
     /**
      * @dataProvider combinatorFunctionHeaderDataProvider
      *
-     * @param  [type] $closure  [description]
-     * @param  bool   $is_valid [description]
-     * @return [type]           [description]
+     * @param  callable $closure  Closure to add as a function
+     * @param  bool     $is_valid If this is a valid Combinator
      */
-    public function testAddingACombinatorWithoutProperFunctionParametersThrowExceptions($closure, bool $is_valid)
+    public function testAddingACombinatorWithoutProperFunctionParametersThrowExceptions(callable $closure, bool $is_valid)
     {
         if (!$is_valid) {
             $this->expectException(InvalidArgumentException::class);
