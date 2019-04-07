@@ -57,6 +57,26 @@ trait Mixable
 
 
     /**
+     * Returns which class a part (method or property) has been added to in an array
+     * of closures by class or false if it hasn't been added to any classes in the array
+     *
+     * @param  string       $part
+     * @param  array        $methods
+     *
+     * @return string|false
+     */
+    private static function getClassFromMixedPartArray(string $part, array $methods) {
+        $class = static::class;
+        while ($class !== false) {
+            if (isset($methods[$class][$part])) {
+                break;
+            }
+            $class = get_parent_class($class);
+        }
+        return $class;
+    }
+
+    /**
      * Register a new function to this class
      *
      * @param  string   $name    Name of the function we want this callable as
@@ -97,14 +117,7 @@ trait Mixable
      */
     protected static function getMixedPropertyClass(string $property)
     {
-        $class = static::class;
-        while ($class !== false) {
-            if (isset(static::$mixable_properties[$class][$property])) {
-                break;
-            }
-            $class = get_parent_class($class);
-        }
-        return $class;
+        return self::getClassFromMixedPartArray($property, static::$mixable_properties);
     }
 
     /**
@@ -158,14 +171,7 @@ trait Mixable
     public static function getMixedMethodClass(string $method, bool $static = false)
     {
         $methods = $static ? static::$mixable_static_methods : static::$mixable_methods;
-        $class = static::class;
-        while ($class !== false) {
-            if (isset($methods[$class][$method])) {
-                break;
-            }
-            $class = get_parent_class($class);
-        }
-        return $class;
+        return self::getClassFromMixedPartArray($method, $methods);
     }
 
     /**
@@ -193,6 +199,18 @@ trait Mixable
 
         $callable_context = new ContextClosure($macro, $context);
         static::$combinator_methods[static::class][$name] = $callable_context;
+    }
+
+    /**
+     * Returns which class a combinator was added to or false if it hasn't been added to this class
+     *
+     * @param  string       $combinator
+     *
+     * @return string|false
+     */
+    public static function getCombinatorClass(string $combinator)
+    {
+        return self::getClassFromMixedPartArray($combinator, static::$combinator_methods);
     }
 
     /**
@@ -236,27 +254,6 @@ trait Mixable
                 throw new InvalidArgumentException($base_error_message . ' Any parameters besides the first two must have default values.');
             }
         }
-    }
-
-    /**
-     * Returns which class a combinator was added to or false if it hasn't been added to this class
-     *
-     * @param  string       $combinator
-     * @param  bool         $static
-     *
-     * @return string|false
-     */
-    public static function getCombinatorClass(string $combinator)
-    {
-        $combinators = static::$combinator_methods;
-        $class = static::class;
-        while ($class !== false) {
-            if (isset($combinators[$class][$combinator])) {
-                break;
-            }
-            $class = get_parent_class($class);
-        }
-        return $class;
     }
 
     /**
