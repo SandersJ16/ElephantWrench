@@ -436,4 +436,37 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
         //the private methods of its parent `MixableTestClass`
         $mixable_subclass->callPrivateMethod();
     }
+
+    /**
+     * Test that when multiple functions are mixed into a class with the same name,
+     * the last function mixed in is the one that is used when called on the mixable class
+     */
+    public function testAddingMultipleFunctionsWithSameNameThatLastAddedFunctionIsUsed()
+    {
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('test', function () {
+            return 'first value';
+        });
+        $mixable_class::mix('test', function () {
+            return 'second value';
+        });
+        $this->assertEquals('second value', $mixable_class->test());
+    }
+
+    /**
+     * Test that when multiple functions are mixed into a class with the same name,
+     * the last function mixed in has its context used called on the mixable class
+     *
+     * @expectedException Error
+     */
+    public function testAddingMultipleFunctionsWithSameNameThatLastAddedFunctionsContextIsUsed()
+    {
+        $this->expectException(Error::class);
+
+        $mixable_class = new MixableTestClass();
+        $mixable_class::mix('test', function () {}, ContextClosure::PUBLIC);
+        $mixable_class::mix('test', function () {}, ContextClosure::PROTECTED);
+
+        $mixable_class->test();
+    }
 }

@@ -55,7 +55,6 @@ trait Mixable
      */
     protected $mixable_instance_properties = array();
 
-
     /**
      * Returns which class a part (method or property) has been added to in an array
      * of closures by class or false if it hasn't been added to any classes in the array
@@ -65,7 +64,8 @@ trait Mixable
      *
      * @return string|false
      */
-    private static function getClassFromMixedPartArray(string $part, array $methods) {
+    private static function getClassFromMixedPartArray(string $part, array $methods)
+    {
         $class = static::class;
         while ($class !== false) {
             if (isset($methods[$class][$part])) {
