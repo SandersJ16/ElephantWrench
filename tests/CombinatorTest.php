@@ -21,16 +21,29 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
      */
     protected static $reset_classes = array(MixableTestClass::class);
 
+    /**
+     * Test that after adding a combinator to a function that combinator is called from the mbase object
+     */
     public function testAddingACombinatorForAFunctionNotOnBaseClassAndNotMixedInGetsCalledAndReturnsValue()
     {
         $expected_value = 'value';
-        MixableTestClass::addCombinator('getValue', function(array $mixed_methods, array $args) use ($expected_value) {
+        $function_name = 'getValue';
+        MixableTestClass::mix($function_name, function () {
+            return 'bad value';
+        });
+        MixableTestClass::addCombinator($function_name, function(array $mixed_methods, array $args) use ($expected_value) {
             return $expected_value;
         });
         $mixable_class = new MixableTestClass();
-        $this->assertEquals($expected_value, $mixable_class->getValue());
+        $this->assertEquals($expected_value, $mixable_class->$function_name());
     }
-
+    /**
+     * Return test cases for testing combinator function signatures
+     *
+     * @return array An array of arrays where the first value of each internal array is a
+     *               lambda function with no body and the second value is a boolean value
+     *               for if the lambda function is a valid combinator function or not.
+     */
     public function combinatorFunctionHeaderDataProvider() {
         return array(
             'Combinator function with no type hinting' =>
@@ -52,7 +65,7 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
             'Combinator function with first parameter type hinted as Taversable and second parameter type hinted as array' =>
                 array(function(Traversable $a, array $b) {}, true),
             'Combinator function with first parameter type hinted as a class that implements Traversable' =>
-                array(function(ArrayObject $a, $b) {}, true),
+                array(function(ArrayObject $a, $b) {}, false),
             'Combinator function with first parameter type hinted as something other than Traversable or array' =>
                 array(function(string $a, $b) {}, false),
             'Combinator function with second parameter type hinted as something other than Traversable or array' =>
@@ -71,21 +84,98 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
                 array(function($a, $b, $c, $d = null) {}, false),
             'Combinator function with more than 2 arguments, where all extra arguments have a default value' =>
                 array(function($a, $b, $c = null, $d = null) {}, true),
+            'Combinator function with a specified return type' =>
+                array(function($a, $b) : boolean {}, true)
             );
     }
 
     /**
+     *  Testing for validity of combinators based on their function signatures
+     *
      * @dataProvider combinatorFunctionHeaderDataProvider
      *
-     * @param  callable $closure  Closure to add as a function
+     * @param  callable $closure  Closure to add as a combinator function
      * @param  bool     $is_valid If this is a valid Combinator
      */
-    public function testAddingACombinatorWithoutProperFunctionParametersThrowExceptions(callable $closure, bool $is_valid)
+    public function testAddingACombinatorWithoutProperFunctionSignaturesThrowExceptions(callable $closure, bool $is_valid)
     {
         if (!$is_valid) {
             $this->expectException(InvalidArgumentException::class);
         }
         MixableTestClass::addCombinator('test', $closure);
     }
-}
 
+    /**
+     * Test that a combinator has access to the correct number of mixed in functions
+     */
+    public function testCombinatorHasCorrectNumberOfMixedInFunctions()
+    {
+        $combinator_function_name = 'test';
+        $combinator_counter = function($mixed_methods, $parameters) {
+            return count($mixed_methods);
+        };
+
+        $mixable_test_class = new MixableTestClass();
+
+        $mixable_test_class::addCombinator($combinator_function_name, $combinator_counter);
+        $this->assertEquals(0, $mixable_test_class->$combinator_function_name());
+
+        for ($i = 0; $i < 3; ++$i) {
+            $mixable_test_class::mix($combinator_function_name, function() {});
+            $this->assertEquals($i + 1, $mixable_test_class->$combinator_function_name());
+        }
+    }
+
+    /**
+     * Test that combinator has access to return values of mixed function when no parameters are passed to the mixed methods
+     */
+    public function testUsingReturnValuesOfMultipleMixedFunctionsInCombinator()
+    {
+        $combinator_function_name = 'number_of_heroes';
+        $summation_combinator = function ($mixed_methods, $parameters) {
+            $sum = 0;
+            foreach ($mixed_methods as $mixed_method) {
+                $sum += $mixed_method();
+            }
+            return $sum;
+        };
+
+        $mixable_test_class = new MixableTestClass();
+        $mixable_test_class::addCombinator($combinator_function_name, $summation_combinator);
+
+        $summation_values = array(4, 7, 9);
+        foreach ($summation_values as $summation_value) {
+            $mixable_test_class::mix($combinator_function_name, function() use($summation_value) {return $summation_value;});
+        }
+
+        $this->assertEquals(array_sum($summation_values), $mixable_test_class->$combinator_function_name());
+    }
+
+    /**
+     * Test that all mixed methods are called by combinator and tht parameters are passed through to mixed methods properly
+     */
+    public function testUsingReturnValuesOfMultipleMixedFunctionsThatAcceptParametersInCombinator()
+    {
+        $combinator_function_name = 'power_of';
+        $aggregate_combinator = function ($mixed_methods, $parameters) {
+            $return_values = array();
+            foreach ($mixed_methods as $mixed_method) {
+                $return_values[] = $mixed_method(...$parameters);
+            }
+            return $return_values;
+        };
+
+        $mixable_test_class = new MixableTestClass();
+        $mixable_test_class::addCombinator($combinator_function_name, $aggregate_combinator);
+
+        for ($i = 1; $i <= 3; ++$i) {
+            $mixable_test_class::mix($combinator_function_name, function($value) use($i) {return $value * $i;});
+        }
+
+        $function_inputs = array(5, 7, 11);
+        foreach ($function_inputs as $function_input) {
+            $this->assertEquals(array($function_input * 1, $function_input * 2, $function_input * 3),
+                                $mixable_test_class->$combinator_function_name($function_input));
+        }
+    }
+}

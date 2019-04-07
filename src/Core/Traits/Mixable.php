@@ -67,13 +67,13 @@ trait Mixable
     public static function mix(string $name, callable $macro, $context = ContextClosure::PUBLIC)
     {
         $callable_context = new ContextClosure($macro, $context);
-        static::$mixable_methods[static::class][$name] = $callable_context;
+        static::$mixable_methods[static::class][$name][] = $callable_context;
     }
 
     public static function staticMix(string $name, callable $macro, $context = ContextClosure::PUBLIC)
     {
         $callable_context = new ContextClosure($macro, $context, true);
-        static::$mixable_static_methods[static::class][$name] = $callable_context;
+        static::$mixable_static_methods[static::class][$name][] = $callable_context;
     }
 
     /**
@@ -180,31 +180,37 @@ trait Mixable
         return (bool) static::getMixedMethodClass($method);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * Add a combinator to this class
+     *
+     * @param string   $name    Name of the combinator function, if one already exists with this name it'll be overriden
+     * @param callable $macro   A callable that will be used as the combinator call. Must have a valid function signature
+     *                          (see validateCallableFunctionSignatureForCombinator for what a valid signature is)
+     */
     public static function addCombinator(string $name, callable $macro, $context = ContextClosure::PUBLIC)
     {
-        self::validateCallableForCombinator($macro);
+        self::validateCallableFunctionSignatureForCombinator($macro);
 
         $callable_context = new ContextClosure($macro, $context);
         static::$combinator_methods[static::class][$name] = $callable_context;
     }
 
-    private static function validateCallableForCombinator(callable $macro)
+    /**
+     * Check that a callable has a valid function signature to be a combinator. Combinator functions are called
+     * with two parameters, the first parameter is an array of all the mixed in methods matching that combinators
+     * name and the second paramter is an arry of parameters from that the method was called with.
+     *
+     * A valid function signature for a callable must:
+     * - Have at least 2 parameters
+     * - The first two parameters must have not type hinting or be type hinted as `array` or `Traversable`
+     * - If there are more than 2 parameters than all parameters after the first two must have a default value
+     * - callable may or may not specify a return type
+     *
+     * @param  callable $macro
+     *
+     * @throws InvalidArgumentException
+     */
+    private static function validateCallableFunctionSignatureForCombinator(callable $macro)
     {
         $base_error_message =  'Cannot register combinator to class "' . static::class . '", the callable provided was not valid.';
         $reflection_function = new ReflectionFunction($macro);
@@ -215,8 +221,7 @@ trait Mixable
         foreach (array_slice($parameters, 0, 2) as $parameter) {
             $parameter_type = $parameter->getType();
             if ($parameter_type instanceof ReflectionNamedType
-                && !in_array($parameter_type->getName(), array('array', Traversable::class))
-                && !is_subclass_of($parameter_type->getName(), Traversable::class)) {
+                && !in_array($parameter_type->getName(), array('array', Traversable::class))) {
                 throw new InvalidArgumentException(sprintf(
                     '%s The The First two parameters must either be not type hinted or type hinted with "array" or "%s".'
                     . ' The parameter at position %s had type hinting of "%s"',
@@ -233,12 +238,20 @@ trait Mixable
         }
     }
 
-    public static function getCombinatorClass(string $method)
+    /**
+     * Returns which class a combinator was added to or false if it hasn't been added to this class
+     *
+     * @param  string       $combinator
+     * @param  bool         $static
+     *
+     * @return string|false
+     */
+    public static function getCombinatorClass(string $combinator)
     {
         $combinators = static::$combinator_methods;
         $class = static::class;
         while ($class !== false) {
-            if (isset($combinators[$class][$method])) {
+            if (isset($combinators[$class][$combinator])) {
                 break;
             }
             $class = get_parent_class($class);
@@ -246,11 +259,27 @@ trait Mixable
         return $class;
     }
 
-
-
-
-
-
+    /**
+     * Returns all mixed methods for a class
+     *
+     * @param  string       $method
+     * @param  bool         $static
+     *
+     * @return array
+     */
+    public static function getMixedMethods(string $method, bool $static = false)
+    {
+        $mixed_methods = array();
+        $all_mixed_methods = $static ? static::$mixable_static_methods : static::$mixable_methods;
+        $class = static::class;
+        while ($class !== false) {
+            if (isset($all_mixed_methods[$class][$method])) {
+                $mixed_methods = array_merge($mixed_methods, $all_mixed_methods[$class][$method]);
+            }
+            $class = get_parent_class($class);
+        }
+        return $mixed_methods;
+    }
 
     /**
      * Dynamically handle calls to the class, if a function has been
@@ -275,12 +304,14 @@ trait Mixable
             ));
         }
 
-        $combinator = false;
         if ($mixed_class = static::getCombinatorClass($method)) {
-            $combinator = true;
+            //If the method has a combinator than make the combinator the closure to be called and the parameters an array where
+            //the first value is all the mixed methods with that name and the second value is the array of the original parameters
             $context_closure = static::$combinator_methods[$mixed_class][$method];
+            $parameters = array($this->getMixedMethods($method), $parameters);
         } elseif ($mixed_class = static::getMixedMethodClass($method)) {
-            $context_closure = static::$mixable_methods[$mixed_class][$method];
+            //If the method is not a combinator but has been mixed, use the last mixed in method with that name
+            $context_closure = end(static::$mixable_methods[$mixed_class][$method]);
         } else {
             //If we don't have a mixed in method or combinator than throw an Error
             throw new Error(sprintf(
@@ -309,11 +340,7 @@ trait Mixable
         }
 
         $closure = Closure::bind($context_closure->getClosure(), $this, $mixed_class);
-        if ($combinator) {
-            return $closure(array(), array());
-        } else {
-            return $closure(...$parameters);
-        }
+        return $closure(...$parameters);
     }
 
     /**
@@ -349,7 +376,7 @@ trait Mixable
         }
 
         //If we get to this part of the function than we are dealing with a mixed in static function
-        $context_closure = static::$mixable_static_methods[$mixed_class][$method];
+        $context_closure = end(static::$mixable_static_methods[$mixed_class][$method]);
 
         $reflection_class = new ReflectionClass(static::class);
         $fake_instance = $reflection_class->newInstanceWithoutConstructor();
