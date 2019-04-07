@@ -2,11 +2,12 @@
 
 namespace ElephantWrench\Test;
 
+use Error;
 use Traversable;
 use ArrayObject;
 use InvalidArgumentException;
 
-use ElephantWrench\Test\Helpers\MixableTestClass;
+use ElephantWrench\Test\Helpers\{MixableTestClass, MixableTestSubClass};
 
 /**
  * This class tests the Mixable::Mix function
@@ -177,5 +178,91 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
             $this->assertEquals(array($function_input * 1, $function_input * 2, $function_input * 3),
                                 $mixable_test_class->$combinator_function_name($function_input));
         }
+    }
+
+    /**
+     * Test that mixed methods called by a combinator have access to the properties and functions of the class
+     */
+    public function testMixedMethodsCalledViaACombinatorHaveAccessToClassPropertiesAndMethods()
+    {
+        $combinator_function_name = 'get_property_or_call_function';
+        $aggregate_combinator = function ($mixed_methods, $parameters) {
+            $return_values = array();
+            foreach ($mixed_methods as $mixed_method) {
+                $return_values[] = $mixed_method(...$parameters);
+            }
+            return $return_values;
+        };
+
+        $mixable_test_class = new MixableTestClass();
+        $mixable_test_class::addCombinator($combinator_function_name, $aggregate_combinator);
+        $mixable_test_class::mix($combinator_function_name, function() {return $this->public_property;});
+        $mixable_test_class::mix($combinator_function_name, function() {return self::$static_public_property;});
+        $mixable_test_class::mix($combinator_function_name, function() {return $this->publicNonMixedMethod();});
+        $mixable_test_class::mix($combinator_function_name, function() {return self::publicNonMixedStaticMethod();});
+        $mixable_test_class::mix($combinator_function_name, function() {return $this->protected_property;});
+        $mixable_test_class::mix($combinator_function_name, function() {return self::$static_protected_property;});
+        $mixable_test_class::mix($combinator_function_name, function() {return $this->protectedNonMixedMethod();});
+        $mixable_test_class::mix($combinator_function_name, function() {return self::protectedNonMixedStaticMethod();});
+        $mixable_test_class::mix($combinator_function_name, function() {return $this->private_property;});
+        $mixable_test_class::mix($combinator_function_name, function() {return self::$static_private_property;});
+        $mixable_test_class::mix($combinator_function_name, function() {return $this->privateNonMixedMethod();});
+        $mixable_test_class::mix($combinator_function_name, function() {return self::privateNonMixedStaticMethod();});
+
+        $this->assertEquals(array($mixable_test_class->public_property,
+                                  $mixable_test_class::$static_public_property,
+                                  $mixable_test_class->publicNonMixedMethod(),
+                                  $mixable_test_class::publicNonMixedStaticMethod(),
+                                  $this->getNonPublicProperty($mixable_test_class, 'protected_property'),
+                                  $this->getNonPublicProperty($mixable_test_class, 'static_protected_property'),
+                                  $this->callNonPublicMethod($mixable_test_class, 'protectedNonMixedMethod'),
+                                  $this->callNonPublicMethod($mixable_test_class, 'protectedNonMixedStaticMethod'),
+                                  $this->getNonPublicProperty($mixable_test_class, 'private_property'),
+                                  $this->getNonPublicProperty($mixable_test_class, 'static_private_property'),
+                                  $this->callNonPublicMethod($mixable_test_class, 'privateNonMixedMethod'),
+                                  $this->callNonPublicMethod($mixable_test_class, 'privateNonMixedStaticMethod')),
+                            $mixable_test_class->$combinator_function_name());
+
+    }
+
+    /**
+     * Data Provider that give functions that use private properties and call private methods of MixableTestClass
+     */
+    public function functionsUsingPrivatePropertiesAndMethodsDataProvider() {
+        return array(
+            'Function accessing a private property of parent class' =>
+                array(function() {return $this->private_property;}),
+            'Function accessing a private static property of parent class' =>
+                array(function() {return self::$static_private_property;}),
+            'Function calling a private method of parent class' =>
+                array(function() {return $this->privateNonMixedMethod();}),
+            'Function calling a private static method of parent class' =>
+                array(function() {return self::privateNonMixedStaticMethod();}),
+            );
+    }
+
+    /**
+     * Test that mixed methods called from a combinator don't have access to properties or functions that are out of their context
+     *
+     * @dataProvider      functionsUsingPrivatePropertiesAndMethodsDataProvider
+     *
+     * @expectedException \Error
+     */
+    public function testMixedMethodsCalledViaACombinatorDoNotHaveAccessToPrivateClassPropertiesAndMethodsOfAParentClass($function_accessing_private_property_or_method) {
+
+        $this->expectException(Error::class);
+
+        $combinator_function_name = 'call_inaccesible_function';
+        $call_all_combinator = function ($mixed_methods, $parameters) {
+            foreach ($mixed_methods as $mixed_method) {
+                $mixed_method(...$parameters);
+            }
+        };
+
+        $mixable_test_class = new MixableTestSubClass();
+        $mixable_test_class::addCombinator($combinator_function_name, $call_all_combinator);
+        $mixable_test_class::mix($combinator_function_name, $function_accessing_private_property_or_method);
+
+        $mixable_test_class->$combinator_function_name();
     }
 }

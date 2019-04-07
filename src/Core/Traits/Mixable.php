@@ -305,7 +305,11 @@ trait Mixable
             //If the method has a combinator than make the combinator the closure to be called and the parameters an array where
             //the first value is all the mixed methods with that name and the second value is the array of the original parameters
             $context_closure = static::$combinator_methods[$mixed_class][$method];
-            $parameters = array($this->getMixedMethods($method), $parameters);
+            $mixed_closures = array_map(function($mixed_method)  use ($mixed_class) {
+                return Closure::bind($mixed_method->getClosure(), $this, $mixed_class);
+            }, $this->getMixedMethods($method));
+
+            $parameters = array($mixed_closures, $parameters);
         } elseif ($mixed_class = static::getMixedMethodClass($method)) {
             //If the method is not a combinator but has been mixed, use the last mixed in method with that name
             $context_closure = end(static::$mixable_methods[$mixed_class][$method]);

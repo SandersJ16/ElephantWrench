@@ -135,7 +135,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
      * Test that a function added to the subclass of a Mixable can
      * NOT use a private non-static property defined on the Mixable
      *
-     * @expectedException Error
+     * @expectedException \Error
      */
     public function testAddingFunctionThatUsesParentExistingMixableClassPrivatePropertyFromSubclass()
     {
@@ -221,7 +221,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
      * Test that an added function can NOT use a private static property
      * defined on the Mixable using static from a child class.
      *
-     * @expectedException Error
+     * @expectedException \Error
      */
     public function testAddingFunctionThatUsesExistingMixableClassStaticPrivatePropertyCallableFromMixableSubclassWhenUsingStaticToAccessProperty()
     {
@@ -320,7 +320,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
      * defined on the Mixable and called using `self` is not accesible
      * when added to the subclass of the mixable
      *
-     * @expectedException Error
+     * @expectedException \Error
      */
     public function testAddingFunctionThatUsesExistingMixableClassStaticPrivatePropertyToMixableSubclassThatOverridesParentsProperty()
     {
@@ -420,7 +420,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
      * Test that a function added to the subclass of a Mixable can
      * NOT use a private non-static method defined on the Mixable
      *
-     * @expectedException Error
+     * @expectedException \Error
      */
     public function testAddingFunctionThatUsesParentExistingMixableClassPrivateMethodFromSubclass()
     {
@@ -457,7 +457,7 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
      * Test that when multiple functions are mixed into a class with the same name,
      * the last function mixed in has its context used called on the mixable class
      *
-     * @expectedException Error
+     * @expectedException \Error
      */
     public function testAddingMultipleFunctionsWithSameNameThatLastAddedFunctionsContextIsUsed()
     {
