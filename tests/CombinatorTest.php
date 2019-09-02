@@ -23,7 +23,7 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
     protected static $reset_classes = array(MixableTestClass::class, MixableTestSubClass::class);
 
     /**
-     * Test that after adding a combinator to a function that combinator is called from the mbase object
+     * Test that after adding a combinator to a function that combinator is called from the base object
      */
     public function testAddingACombinatorForAFunctionNotOnBaseClassAndNotMixedInGetsCalledAndReturnsValue()
     {
@@ -38,6 +38,7 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
         $mixable_class = new MixableTestClass();
         $this->assertEquals($expected_value, $mixable_class->$function_name());
     }
+
     /**
      * Return test cases for testing combinator function signatures
      *
@@ -91,7 +92,7 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     *  Testing for validity of combinators based on their function signatures
+     * Testing for validity of combinators based on their function signatures
      *
      * @dataProvider combinatorFunctionHeaderDataProvider
      *
