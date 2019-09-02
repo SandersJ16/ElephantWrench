@@ -20,7 +20,7 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
      *
      * @var array
      */
-    protected static $reset_classes = array(MixableTestClass::class);
+    protected static $reset_classes = array(MixableTestClass::class, MixableTestSubClass::class);
 
     /**
      * Test that after adding a combinator to a function that combinator is called from the mbase object
@@ -222,13 +222,13 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
                                   $this->callNonPublicMethod($mixable_test_class, 'privateNonMixedMethod'),
                                   $this->callNonPublicMethod($mixable_test_class, 'privateNonMixedStaticMethod')),
                             $mixable_test_class->$combinator_function_name());
-
     }
 
     /**
      * Data Provider that give functions that use private properties and call private methods of MixableTestClass
      */
-    public function functionsUsingPrivatePropertiesAndMethodsDataProvider() {
+    public function functionsUsingPrivatePropertiesAndMethodsDataProvider()
+    {
         return array(
             'Function accessing a private property of parent class' =>
                 array(function() {return $this->private_property;}),
@@ -248,7 +248,8 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
      *
      * @expectedException \Error
      */
-    public function testMixedMethodsCalledViaACombinatorDoNotHaveAccessToPrivateClassPropertiesAndMethodsOfAParentClass($function_accessing_private_property_or_method) {
+    public function testMixedMethodsCalledViaACombinatorDoNotHaveAccessToPrivateClassPropertiesAndMethodsOfAParentClass($function_accessing_private_property_or_method)
+    {
 
         $this->expectException(Error::class);
 
