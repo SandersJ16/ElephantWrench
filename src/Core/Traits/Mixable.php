@@ -246,7 +246,8 @@ trait Mixable
                     $base_error_message,
                     Traversable::class,
                     $parameter->getPosition() + 1,
-                    $parameter_type->getName()));
+                    $parameter_type->getName()
+                ));
             }
         }
         foreach (array_slice($parameters, 2) as $parameter) {
@@ -305,7 +306,7 @@ trait Mixable
             //If the method has a combinator than make the combinator the closure to be called and the parameters an array where
             //the first value is all the mixed methods with that name and the second value is the array of the original parameters
             $context_closure = static::$combinator_methods[$mixed_class][$method];
-            $mixed_closures = array_map(function($mixed_method)  use ($mixed_class) {
+            $mixed_closures = array_map(function ($mixed_method) use ($mixed_class) {
                 return Closure::bind($mixed_method->getClosure(), $this, $mixed_class);
             }, $this->getMixedMethods($method));
 

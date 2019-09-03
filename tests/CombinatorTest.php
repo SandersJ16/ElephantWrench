@@ -32,7 +32,7 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
         MixableTestClass::mix($function_name, function () {
             return 'bad value';
         });
-        MixableTestClass::addCombinator($function_name, function(array $mixed_methods, array $args) use ($expected_value) {
+        MixableTestClass::addCombinator($function_name, function (array $mixed_methods, array $args) use ($expected_value) {
             return $expected_value;
         });
         $mixable_class = new MixableTestClass();
@@ -46,48 +46,69 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
      *               lambda function with no body and the second value is a boolean value
      *               for if the lambda function is a valid combinator function or not.
      */
-    public function combinatorFunctionHeaderDataProvider() {
+    public function combinatorFunctionHeaderDataProvider()
+    {
         return array(
             'Combinator function with no type hinting' =>
-                array(function($a, $b) {}, true),
+                array(function ($a, $b) {
+                }, true),
             'Combinator function with first parameter type hinted as an array' =>
-                array(function(array $a, $b) {}, true),
+                array(function (array $a, $b) {
+                }, true),
             'Combinator function with second parameter type hinted as an array' =>
-                array(function($a, array $b) {}, true),
+                array(function ($a, array $b) {
+                }, true),
             'Combinator function with first parameter type hinted as an array' =>
-                array(function(Traversable $a, $b) {}, true),
+                array(function (Traversable $a, $b) {
+                }, true),
             'Combinator function with second parameter type hinted as a Traversable' =>
-                array(function($a, Traversable $b) {}, true),
+                array(function ($a, Traversable $b) {
+                }, true),
             'Combinator function with both parameters type hinted as array' =>
-                array(function(array $a, array $b) {}, true),
+                array(function (array $a, array $b) {
+                }, true),
             'Combinator function with neither parameters type hinted as Traversable' =>
-                array(function(Traversable $a, Traversable $b) {}, true),
+                array(function (Traversable $a, Traversable $b) {
+                }, true),
             'Combinator function with first parameter type hinted as array and second parameter type hinted as Traversable' =>
-                array(function(array $a, Traversable $b) {}, true),
+                array(function (array $a, Traversable $b) {
+                }, true),
             'Combinator function with first parameter type hinted as Taversable and second parameter type hinted as array' =>
-                array(function(Traversable $a, array $b) {}, true),
+                array(function (Traversable $a, array $b) {
+                }, true),
             'Combinator function with first parameter type hinted as a class that implements Traversable' =>
-                array(function(ArrayObject $a, $b) {}, false),
+                array(function (ArrayObject $a, $b) {
+                }, false),
             'Combinator function with first parameter type hinted as something other than Traversable or array' =>
-                array(function(string $a, $b) {}, false),
+                array(function (string $a, $b) {
+                }, false),
             'Combinator function with second parameter type hinted as something other than Traversable or array' =>
-                array(function($a, int $b) {}, false),
+                array(function ($a, int $b) {
+                }, false),
             'Combinator function with first parameter type hinted as something other than Traversable or array and second parameter type hinted as Traversable' =>
-                array(function(double $a, Traversable $b) {}, false),
+                array(function (double $a, Traversable $b) {
+                }, false),
             'Combinator function with second parameter type hinted as something other than Traversable or array and first parameter type hinted as array' =>
-                array(function(array $a, bool $b) {}, false),
+                array(function (array $a, bool $b) {
+                }, false),
             'Combinator function with no arguments' =>
-                array(function() {}, false),
+                array(function () {
+                }, false),
             'Combinator function with 1 argument' =>
-                array(function($a) {}, false),
+                array(function ($a) {
+                }, false),
             'Combinator function with more than 2 arguments, where all extra arguments do not have a default value' =>
-                array(function($a, $b, $c, $d) {}, false),
+                array(function ($a, $b, $c, $d) {
+                }, false),
             'Combinator function with more than 2 arguments, where some but not all extra arguments have a default value' =>
-                array(function($a, $b, $c, $d = null) {}, false),
+                array(function ($a, $b, $c, $d = null) {
+                }, false),
             'Combinator function with more than 2 arguments, where all extra arguments have a default value' =>
-                array(function($a, $b, $c = null, $d = null) {}, true),
+                array(function ($a, $b, $c = null, $d = null) {
+                }, true),
             'Combinator function with a specified return type' =>
-                array(function($a, $b) : boolean {}, true)
+                array(function ($a, $b) : boolean {
+                }, true)
             );
     }
 
@@ -113,7 +134,7 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
     public function testCombinatorHasCorrectNumberOfMixedInFunctions()
     {
         $combinator_function_name = 'test';
-        $combinator_counter = function($mixed_methods, $parameters) {
+        $combinator_counter = function ($mixed_methods, $parameters) {
             return count($mixed_methods);
         };
 
@@ -123,7 +144,8 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
         $this->assertEquals(0, $mixable_test_class->$combinator_function_name());
 
         for ($i = 0; $i < 3; ++$i) {
-            $mixable_test_class::mix($combinator_function_name, function() {});
+            $mixable_test_class::mix($combinator_function_name, function () {
+            });
             $this->assertEquals($i + 1, $mixable_test_class->$combinator_function_name());
         }
     }
@@ -147,7 +169,9 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
 
         $summation_values = array(4, 7, 9);
         foreach ($summation_values as $summation_value) {
-            $mixable_test_class::mix($combinator_function_name, function() use($summation_value) {return $summation_value;});
+            $mixable_test_class::mix($combinator_function_name, function () use ($summation_value) {
+                return $summation_value;
+            });
         }
 
         $this->assertEquals(array_sum($summation_values), $mixable_test_class->$combinator_function_name());
@@ -171,13 +195,17 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
         $mixable_test_class::addCombinator($combinator_function_name, $aggregate_combinator);
 
         for ($i = 1; $i <= 3; ++$i) {
-            $mixable_test_class::mix($combinator_function_name, function($value) use($i) {return $value * $i;});
+            $mixable_test_class::mix($combinator_function_name, function ($value) use ($i) {
+                return $value * $i;
+            });
         }
 
         $function_inputs = array(5, 7, 11);
         foreach ($function_inputs as $function_input) {
-            $this->assertEquals(array($function_input * 1, $function_input * 2, $function_input * 3),
-                                $mixable_test_class->$combinator_function_name($function_input));
+            $this->assertEquals(
+                array($function_input * 1, $function_input * 2, $function_input * 3),
+                $mixable_test_class->$combinator_function_name($function_input)
+            );
         }
     }
 
@@ -197,32 +225,58 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
 
         $mixable_test_class = new MixableTestClass();
         $mixable_test_class::addCombinator($combinator_function_name, $aggregate_combinator);
-        $mixable_test_class::mix($combinator_function_name, function() {return $this->public_property;});
-        $mixable_test_class::mix($combinator_function_name, function() {return self::$static_public_property;});
-        $mixable_test_class::mix($combinator_function_name, function() {return $this->publicNonMixedMethod();});
-        $mixable_test_class::mix($combinator_function_name, function() {return self::publicNonMixedStaticMethod();});
-        $mixable_test_class::mix($combinator_function_name, function() {return $this->protected_property;});
-        $mixable_test_class::mix($combinator_function_name, function() {return self::$static_protected_property;});
-        $mixable_test_class::mix($combinator_function_name, function() {return $this->protectedNonMixedMethod();});
-        $mixable_test_class::mix($combinator_function_name, function() {return self::protectedNonMixedStaticMethod();});
-        $mixable_test_class::mix($combinator_function_name, function() {return $this->private_property;});
-        $mixable_test_class::mix($combinator_function_name, function() {return self::$static_private_property;});
-        $mixable_test_class::mix($combinator_function_name, function() {return $this->privateNonMixedMethod();});
-        $mixable_test_class::mix($combinator_function_name, function() {return self::privateNonMixedStaticMethod();});
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return $this->public_property;
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return self::$static_public_property;
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return $this->publicNonMixedMethod();
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return self::publicNonMixedStaticMethod();
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return $this->protected_property;
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return self::$static_protected_property;
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return $this->protectedNonMixedMethod();
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return self::protectedNonMixedStaticMethod();
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return $this->private_property;
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return self::$static_private_property;
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return $this->privateNonMixedMethod();
+        });
+        $mixable_test_class::mix($combinator_function_name, function () {
+            return self::privateNonMixedStaticMethod();
+        });
 
-        $this->assertEquals(array($mixable_test_class->public_property,
-                                  $mixable_test_class::$static_public_property,
-                                  $mixable_test_class->publicNonMixedMethod(),
-                                  $mixable_test_class::publicNonMixedStaticMethod(),
-                                  $this->getNonPublicProperty($mixable_test_class, 'protected_property'),
-                                  $this->getNonPublicProperty($mixable_test_class, 'static_protected_property'),
-                                  $this->callNonPublicMethod($mixable_test_class, 'protectedNonMixedMethod'),
-                                  $this->callNonPublicMethod($mixable_test_class, 'protectedNonMixedStaticMethod'),
-                                  $this->getNonPublicProperty($mixable_test_class, 'private_property'),
-                                  $this->getNonPublicProperty($mixable_test_class, 'static_private_property'),
-                                  $this->callNonPublicMethod($mixable_test_class, 'privateNonMixedMethod'),
-                                  $this->callNonPublicMethod($mixable_test_class, 'privateNonMixedStaticMethod')),
-                            $mixable_test_class->$combinator_function_name());
+        $this->assertEquals(
+            array($mixable_test_class->public_property,
+                  $mixable_test_class::$static_public_property,
+                  $mixable_test_class->publicNonMixedMethod(),
+                  $mixable_test_class::publicNonMixedStaticMethod(),
+                  $this->getNonPublicProperty($mixable_test_class, 'protected_property'),
+                  $this->getNonPublicProperty($mixable_test_class, 'static_protected_property'),
+                  $this->callNonPublicMethod($mixable_test_class, 'protectedNonMixedMethod'),
+                  $this->callNonPublicMethod($mixable_test_class, 'protectedNonMixedStaticMethod'),
+                  $this->getNonPublicProperty($mixable_test_class, 'private_property'),
+                  $this->getNonPublicProperty($mixable_test_class, 'static_private_property'),
+                  $this->callNonPublicMethod($mixable_test_class, 'privateNonMixedMethod'),
+                  $this->callNonPublicMethod($mixable_test_class, 'privateNonMixedStaticMethod')),
+            $mixable_test_class->$combinator_function_name()
+        );
     }
 
     /**
@@ -232,13 +286,21 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
     {
         return array(
             'Function accessing a private property of parent class' =>
-                array(function() {return $this->private_property;}),
+                array(function () {
+                    return $this->private_property;
+                }),
             'Function accessing a private static property of parent class' =>
-                array(function() {return self::$static_private_property;}),
+                array(function () {
+                    return self::$static_private_property;
+                }),
             'Function calling a private method of parent class' =>
-                array(function() {return $this->privateNonMixedMethod();}),
+                array(function () {
+                    return $this->privateNonMixedMethod();
+                }),
             'Function calling a private static method of parent class' =>
-                array(function() {return self::privateNonMixedStaticMethod();}),
+                array(function () {
+                    return self::privateNonMixedStaticMethod();
+                }),
             );
     }
 

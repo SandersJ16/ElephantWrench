@@ -464,8 +464,10 @@ class MixableMixTest extends ElephantWrenchBaseTestCase
         $this->expectException(Error::class);
 
         $mixable_class = new MixableTestClass();
-        $mixable_class::mix('test', function () {}, ContextClosure::PUBLIC);
-        $mixable_class::mix('test', function () {}, ContextClosure::PROTECTED);
+        $mixable_class::mix('test', function () {
+        }, ContextClosure::PUBLIC);
+        $mixable_class::mix('test', function () {
+        }, ContextClosure::PROTECTED);
 
         $mixable_class->test();
     }
