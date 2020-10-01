@@ -178,7 +178,7 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
     }
 
     /**
-     * Test that all mixed methods are called by combinator and tht parameters are passed through to mixed methods properly
+     * Test that all mixed methods are called by combinator and that parameters are passed through to mixed methods properly
      */
     public function testUsingReturnValuesOfMultipleMixedFunctionsThatAcceptParametersInCombinator()
     {
@@ -313,9 +313,6 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
      */
     public function testMixedMethodsCalledViaACombinatorDoNotHaveAccessToPrivateClassPropertiesAndMethodsOfAParentClass($function_accessing_private_property_or_method)
     {
-
-        $this->expectException(Error::class);
-
         $combinator_function_name = 'call_inaccesible_function';
         $call_all_combinator = function ($mixed_methods, $parameters) {
             foreach ($mixed_methods as $mixed_method) {
@@ -327,6 +324,7 @@ class CombinatorTest extends ElephantWrenchBaseTestCase
         $mixable_test_class::addCombinator($combinator_function_name, $call_all_combinator);
         $mixable_test_class::mix($combinator_function_name, $function_accessing_private_property_or_method);
 
+        $this->expectException(Error::class);
         $mixable_test_class->$combinator_function_name();
     }
 }

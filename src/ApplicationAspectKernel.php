@@ -4,7 +4,7 @@ namespace ElephantWrench;
 
 use Go\Core\AspectKernel;
 use Go\Core\AspectContainer;
-use ElephantWrench\Aspects\MonitorAspect;
+use ElephantWrench\Aspects\CombinatorAspect;
 /**
  * Application Aspect Kernel
  */
@@ -19,6 +19,6 @@ class ApplicationAspectKernel extends AspectKernel
      */
     protected function configureAop(AspectContainer $container)
     {
-        $container->registerAspect(new MonitorAspect());
+        $container->registerAspect(new CombinatorAspect());
     }
 }

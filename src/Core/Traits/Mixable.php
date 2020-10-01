@@ -117,7 +117,7 @@ trait Mixable
      */
     protected static function getMixedPropertyClass(string $property)
     {
-        return self::getClassFromMixedPartArray($property, static::$mixable_properties);
+        return static::getClassFromMixedPartArray($property, static::$mixable_properties);
     }
 
     /**
@@ -171,7 +171,7 @@ trait Mixable
     public static function getMixedMethodClass(string $method, bool $static = false)
     {
         $methods = $static ? static::$mixable_static_methods : static::$mixable_methods;
-        return self::getClassFromMixedPartArray($method, $methods);
+        return static::getClassFromMixedPartArray($method, $methods);
     }
 
     /**
@@ -195,7 +195,7 @@ trait Mixable
      */
     public static function addCombinator(string $name, callable $macro, $context = ContextClosure::PUBLIC)
     {
-        self::validateCallableFunctionSignatureForCombinator($macro);
+        static::validateCallableFunctionSignatureForCombinator($macro);
 
         $callable_context = new ContextClosure($macro, $context);
         static::$combinator_methods[static::class][$name] = $callable_context;
@@ -210,7 +210,7 @@ trait Mixable
      */
     public static function getCombinatorClass(string $combinator)
     {
-        return self::getClassFromMixedPartArray($combinator, static::$combinator_methods);
+        return static::getClassFromMixedPartArray($combinator, static::$combinator_methods);
     }
 
     /**
