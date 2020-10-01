@@ -45,7 +45,7 @@ abstract class Combinators
      */
     public static function aggregate(array $starting_array = array()) : callable
     {
-        return function (array $functions, array $parameters) use (starting_array) {
+        return function (array $functions, array $parameters) use ($starting_array) {
             $array = $starting_array;
             foreach ($functions as $function) {
                 $array[] = $function(...$parameters);
@@ -114,13 +114,13 @@ abstract class Combinators
             foreach ($functions as $function) {
                 if ($function(...$parameters)) {
                     $none = false;
-                    if(!$call_all) {
+                    if (!$call_all) {
                         break;
                     }
                 }
             }
             return $none;
-        }
+        };
     }
 
     /**
@@ -136,14 +136,14 @@ abstract class Combinators
             foreach ($functions as $function) {
                 try {
                     return $function(...$parameters);
-                catch(Exception $e) {
+                } catch (Exception $e) {
                     if ($e instanceof $exception_class) {
                         continue;
                     }
                     throw $e;
                 }
             }
-        }
+        };
     }
 
     /**
